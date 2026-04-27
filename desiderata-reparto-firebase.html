@@ -1,0 +1,1428 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Desiderata Reparto - Policlinico</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .card {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+            padding: 30px;
+            margin-bottom: 20px;
+        }
+
+        h1 {
+            color: #2d3748;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+
+        h2 {
+            color: #4a5568;
+            margin-bottom: 20px;
+            font-size: 22px;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 10px;
+        }
+
+        .subtitle {
+            color: #718096;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            color: #4a5568;
+            font-weight: 600;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        input[type="text"],
+        input[type="password"],
+        input[type="month"],
+        select,
+        textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        input:focus,
+        select:focus,
+        textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        textarea {
+            min-height: 120px;
+            resize: vertical;
+            font-family: inherit;
+        }
+
+        button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 14px 28px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            width: 100%;
+        }
+
+        button:hover {
+            background: #5a67d8;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        button:disabled {
+            background: #cbd5e0;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-secondary {
+            background: #718096;
+            margin-top: 10px;
+        }
+
+        .btn-secondary:hover {
+            background: #4a5568;
+        }
+
+        .btn-danger {
+            background: #f56565;
+        }
+
+        .btn-danger:hover {
+            background: #e53e3e;
+        }
+
+        .alert {
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-weight: 500;
+        }
+
+        .alert-success {
+            background: #c6f6d5;
+            color: #22543d;
+            border: 1px solid #9ae6b4;
+        }
+
+        .alert-error {
+            background: #fed7d7;
+            color: #742a2a;
+            border: 1px solid #fc8181;
+        }
+
+        .alert-warning {
+            background: #fef5e7;
+            color: #975a16;
+            border: 1px solid #f6ad55;
+        }
+
+        .alert-info {
+            background: #bee3f8;
+            color: #2c5282;
+            border: 1px solid #90cdf4;
+        }
+
+        .user-badge {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 14px;
+            margin-bottom: 20px;
+        }
+
+        .admin-badge {
+            background: #f6ad55;
+        }
+
+        .deadline-banner {
+            background: linear-gradient(135deg, #f6ad55 0%, #ed8936 100%);
+            color: white;
+            padding: 15px 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            text-align: center;
+            font-weight: 600;
+            box-shadow: 0 4px 12px rgba(246, 173, 85, 0.3);
+        }
+
+        .deadline-banner.expired {
+            background: linear-gradient(135deg, #f56565 0%, #e53e3e 100%);
+        }
+
+        .deadline-banner.close {
+            background: linear-gradient(135deg, #ed8936 0%, #dd6b20 100%);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.8; }
+        }
+
+        .request-card {
+            background: #f7fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 15px;
+        }
+
+        .request-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .request-name {
+            font-weight: 600;
+            color: #2d3748;
+            font-size: 18px;
+        }
+
+        .request-month {
+            background: #667eea;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        .request-detail {
+            margin-bottom: 10px;
+        }
+
+        .request-detail strong {
+            color: #4a5568;
+            display: inline-block;
+            min-width: 120px;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .month-filter {
+            margin-bottom: 20px;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #a0aec0;
+        }
+
+        .empty-state svg {
+            width: 80px;
+            height: 80px;
+            margin-bottom: 20px;
+            opacity: 0.5;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #718096;
+        }
+
+        .spinner {
+            border: 3px solid #e2e8f0;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .day-button {
+            aspect-ratio: 1;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            background: white;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            color: #4a5568;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 8px;
+        }
+
+        .day-button:hover {
+            border-color: #667eea;
+            background: #f7fafc;
+        }
+
+        .day-button.selected {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+
+        .day-button.weekend {
+            background: #fef5e7;
+        }
+
+        .day-button.weekend.selected {
+            background: #667eea;
+        }
+
+        .day-button:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        .preference-card {
+            background: #f7fafc;
+            border: 2px solid #667eea;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 10px;
+        }
+
+        .preference-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .day-badge {
+            background: #667eea;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 6px;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .remove-day {
+            background: #f56565;
+            color: white;
+            border: none;
+            padding: 4px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .remove-day:hover {
+            background: #e53e3e;
+        }
+
+        .preference-select {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #e2e8f0;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        @media (max-width: 640px) {
+            .card {
+                padding: 20px;
+            }
+
+            h1 {
+                font-size: 24px;
+            }
+
+            h2 {
+                font-size: 20px;
+            }
+
+            .request-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .stats {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .setup-instructions {
+            background: #fff3cd;
+            border: 2px solid #ffc107;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .setup-instructions h3 {
+            color: #856404;
+            margin-bottom: 15px;
+        }
+
+        .setup-instructions ol {
+            margin-left: 20px;
+            color: #856404;
+        }
+
+        .setup-instructions li {
+            margin-bottom: 10px;
+            line-height: 1.6;
+        }
+
+        .setup-instructions code {
+            background: #fff;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 13px;
+        }
+
+        .firebase-status {
+            padding: 10px 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .firebase-status.connected {
+            background: #c6f6d5;
+            color: #22543d;
+            border: 1px solid #9ae6b4;
+        }
+
+        .firebase-status.disconnected {
+            background: #fed7d7;
+            color: #742a2a;
+            border: 1px solid #fc8181;
+        }
+
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            animation: blink 2s infinite;
+        }
+
+        .status-dot.green {
+            background: #22543d;
+        }
+
+        .status-dot.red {
+            background: #742a2a;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.4; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Setup Instructions (shown when Firebase not configured) -->
+        <div id="setupInstructions" class="card setup-instructions hidden">
+            <h3>🔧 Configurazione Firebase Richiesta</h3>
+            <p style="color: #856404; margin-bottom: 15px;">
+                Per utilizzare l'applicazione con sincronizzazione online, segui questi passi:
+            </p>
+            <ol>
+                <li>Vai su <a href="https://console.firebase.google.com" target="_blank" style="color: #667eea;">Firebase Console</a></li>
+                <li>Crea un nuovo progetto (es: "desiderata-reparto")</li>
+                <li>Aggiungi un'app Web al progetto</li>
+                <li>Copia la configurazione Firebase</li>
+                <li>Apri questo file HTML con un editor di testo</li>
+                <li>Cerca la sezione <code>FIREBASE_CONFIG</code> (circa riga 600)</li>
+                <li>Incolla i tuoi valori di configurazione</li>
+                <li>Abilita "Firestore Database" nel progetto Firebase (modalità test)</li>
+                <li>Ricarica questa pagina</li>
+            </ol>
+            <p style="color: #856404; margin-top: 15px; font-weight: 600;">
+                📧 Per assistenza nella configurazione, contatta il supporto IT.
+            </p>
+        </div>
+
+        <!-- Login Screen -->
+        <div id="loginScreen" class="card">
+            <h1>🏥 Desiderata Reparto</h1>
+            <p class="subtitle">A.O.U. Policlinico "G. Rodolico – San Marco"</p>
+            
+            <div id="firebaseStatus" class="firebase-status hidden">
+                <div class="status-dot"></div>
+                <span></span>
+            </div>
+
+            <div class="form-group">
+                <label for="username">Nome utente</label>
+                <input type="text" id="username" placeholder="Inserisci il tuo nome utente">
+            </div>
+            
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" placeholder="Inserisci la tua password">
+            </div>
+            
+            <button onclick="login()">Accedi</button>
+            
+            <div id="loginError" class="alert alert-error hidden" style="margin-top: 20px;">
+                Credenziali non valide
+            </div>
+        </div>
+
+        <!-- User Screen -->
+        <div id="userScreen" class="hidden">
+            <div class="card">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px;">
+                    <div>
+                        <h1>Le tue Desiderata</h1>
+                        <div class="user-badge" id="userBadge"></div>
+                    </div>
+                    <button onclick="logout()" class="btn-secondary" style="width: auto; padding: 10px 20px;">Esci</button>
+                </div>
+
+                <div id="deadlineBanner"></div>
+                <div id="userAlert" class="hidden"></div>
+
+                <h2>Inserisci Nuova Richiesta</h2>
+                
+                <div class="form-group">
+                    <label for="requestMonth">Mese di riferimento</label>
+                    <input type="month" id="requestMonth" min="2025-01" onchange="updateDaysList()">
+                </div>
+
+                <div class="form-group">
+                    <label>Seleziona giorni e preferenze</label>
+                    <div style="background: #f7fafc; padding: 15px; border-radius: 8px; margin-bottom: 10px;">
+                        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(45px, 1fr)); gap: 8px;" id="daysGrid">
+                            <!-- Days will be generated dynamically -->
+                        </div>
+                    </div>
+                    <p style="font-size: 13px; color: #718096; margin-top: 8px;">
+                        Clicca sui giorni per selezionarli, poi scegli la preferenza per ciascuno
+                    </p>
+                </div>
+
+                <div id="selectedDaysPreferences" style="margin-bottom: 20px;">
+                    <!-- Selected days preferences will appear here -->
+                </div>
+
+                <div class="form-group">
+                    <label for="notes">Note generali (opzionali)</label>
+                    <textarea id="notes" placeholder="Eventuali note o richieste particolari per l'intero mese..."></textarea>
+                </div>
+
+                <button onclick="submitRequest()" id="submitBtn">Invia Desiderata</button>
+            </div>
+
+            <div class="card">
+                <h2>Le mie Richieste Precedenti</h2>
+                <div id="userRequests"></div>
+                <button onclick="deleteMyData()" class="btn-danger" style="margin-top: 20px;">
+                    🗑️ Cancella tutte le mie richieste
+                </button>
+            </div>
+        </div>
+
+        <!-- Admin Screen -->
+        <div id="adminScreen" class="hidden">
+            <div class="card">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px;">
+                    <div>
+                        <h1>Dashboard Amministratore</h1>
+                        <div class="user-badge admin-badge">👨‍⚕️ Dr. Leotta (Admin)</div>
+                    </div>
+                    <button onclick="logout()" class="btn-secondary" style="width: auto; padding: 10px 20px;">Esci</button>
+                </div>
+
+                <div id="adminDeadlineBanner"></div>
+
+                <div class="stats">
+                    <div class="stat-card">
+                        <div class="stat-number" id="totalRequests">0</div>
+                        <div class="stat-label">Richieste Totali</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="activeUsers">0</div>
+                        <div class="stat-label">Utenti Attivi</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="currentMonthRequests">0</div>
+                        <div class="stat-label">Richieste Mese Corrente</div>
+                    </div>
+                </div>
+
+                <div class="month-filter">
+                    <label for="filterMonth">Filtra per mese</label>
+                    <select id="filterMonth" onchange="filterRequests()">
+                        <option value="">Tutti i mesi</option>
+                    </select>
+                </div>
+
+                <h2>Tutte le Desiderata</h2>
+                <div id="allRequests"></div>
+                
+                <div style="margin-top: 30px; padding: 20px; background: #fff3cd; border: 2px solid #ffc107; border-radius: 8px;">
+                    <h3 style="color: #856404; margin-bottom: 10px;">⚠️ Zona Amministratore</h3>
+                    <p style="color: #856404; margin-bottom: 15px; font-size: 14px;">
+                        Attenzione: queste azioni sono irreversibili!
+                    </p>
+                    <button onclick="deleteAllData()" class="btn-danger">
+                        🗑️ Cancella TUTTE le richieste (di tutti i medici)
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+
+    <script>
+        // ============================================
+        // FIREBASE CONFIGURATION
+        // ============================================
+        const FIREBASE_CONFIG = {
+            apiKey: "AIzaSyDG1wSNozfONuQSacRDGct-6NbU_uvX3qs",
+            authDomain: "desiderata-reparto.firebaseapp.com",
+            projectId: "desiderata-reparto",
+            storageBucket: "desiderata-reparto.firebasestorage.app",
+            messagingSenderId: "448675192587",
+            appId: "1:448675192587:web:687c0d9d2061ff323acc0e"
+        };
+
+        // Check if Firebase is configured
+        const isFirebaseConfigured = FIREBASE_CONFIG.apiKey !== "YOUR_API_KEY_HERE";
+        
+        let db = null;
+        let firebaseInitialized = false;
+
+        if (isFirebaseConfigured) {
+            try {
+                firebase.initializeApp(FIREBASE_CONFIG);
+                db = firebase.firestore();
+                firebaseInitialized = true;
+                console.log('Firebase inizializzato correttamente');
+            } catch (error) {
+                console.error('Errore inizializzazione Firebase:', error);
+            }
+        }
+
+        // Users database
+        const users = {
+            'admin': { password: 'Leotta2025!', role: 'admin', name: 'Dr. Giuseppe Leotta' },
+            'ardizzone': { password: 'Ardiz2025!', role: 'user', name: 'Dr. Ardizzone' },
+            'campione': { password: 'Campi2025!', role: 'user', name: 'Dr. Campione' },
+            'dagati': { password: 'DAgat2025!', role: 'user', name: 'Dr. D\'Agati' },
+            'esposto': { password: 'Espos2025!', role: 'user', name: 'Dr. Esposto' },
+            'germano': { password: 'Germa2025!', role: 'user', name: 'Dr. Germanò' },
+            'monaco': { password: 'Monac2025!', role: 'user', name: 'Dr. Monaco' },
+            'muzzicato': { password: 'Muzzi2025!', role: 'user', name: 'Dr. Muzzicato' },
+            'pappalardo': { password: 'Pappa2025!', role: 'user', name: 'Dr. Pappalardo' },
+            'patania': { password: 'Patan2025!', role: 'user', name: 'Dr. Patania' },
+            'pennisi': { password: 'Penni2025!', role: 'user', name: 'Dr. Pennisi' },
+            'scilletta': { password: 'Scill2025!', role: 'user', name: 'Dr. Scilletta' },
+            'sparacino': { password: 'Spara2025!', role: 'user', name: 'Dr. Sparacino' },
+            'valenti': { password: 'Valen2025!', role: 'user', name: 'Dr. Valenti' },
+        };
+
+        let currentUser = null;
+        let selectedDays = {};
+
+        // Italian holidays (main ones)
+        const italianHolidays = {
+            '01-01': 'Capodanno',
+            '01-06': 'Epifania',
+            '04-25': 'Liberazione',
+            '05-01': 'Festa del Lavoro',
+            '06-02': 'Festa della Repubblica',
+            '08-15': 'Ferragosto',
+            '11-01': 'Ognissanti',
+            '12-08': 'Immacolata',
+            '12-25': 'Natale',
+            '12-26': 'Santo Stefano'
+        };
+
+        // Calculate deadline for a given month
+        function calculateDeadline(year, month) {
+            let deadline = new Date(year, month - 1, 18);
+            
+            // If 18th is Sunday (0) or Saturday (6), move to next Monday
+            while (deadline.getDay() === 0 || deadline.getDay() === 6) {
+                deadline.setDate(deadline.getDate() + 1);
+            }
+            
+            // Check if it's a holiday
+            const dateStr = `${String(deadline.getMonth() + 1).padStart(2, '0')}-${String(deadline.getDate()).padStart(2, '0')}`;
+            if (italianHolidays[dateStr]) {
+                deadline.setDate(deadline.getDate() + 1);
+                // Check again if the next day is weekend
+                while (deadline.getDay() === 0 || deadline.getDay() === 6) {
+                    deadline.setDate(deadline.getDate() + 1);
+                }
+            }
+            
+            return deadline;
+        }
+
+        // Check if deadline has passed for a given month
+        function isDeadlinePassed(monthStr) {
+            const [year, month] = monthStr.split('-');
+            const deadline = calculateDeadline(parseInt(year), parseInt(month));
+            const now = new Date();
+            return now > deadline;
+        }
+
+        // Get days until deadline
+        function getDaysUntilDeadline(monthStr) {
+            const [year, month] = monthStr.split('-');
+            const deadline = calculateDeadline(parseInt(year), parseInt(month));
+            const now = new Date();
+            const diff = deadline - now;
+            return Math.ceil(diff / (1000 * 60 * 60 * 24));
+        }
+
+        // Display deadline banner
+        function displayDeadlineBanner(containerId) {
+            const container = document.getElementById(containerId);
+            if (!container) return;
+
+            const monthInput = document.getElementById('requestMonth');
+            if (!monthInput || !monthInput.value) {
+                container.innerHTML = '';
+                return;
+            }
+
+            const monthValue = monthInput.value;
+            const [year, month] = monthValue.split('-');
+            const deadline = calculateDeadline(parseInt(year), parseInt(month));
+            const daysUntil = getDaysUntilDeadline(monthValue);
+            const isPassed = isDeadlinePassed(monthValue);
+
+            const deadlineStr = deadline.toLocaleDateString('it-IT', { 
+                weekday: 'long', 
+                day: 'numeric', 
+                month: 'long', 
+                year: 'numeric' 
+            });
+
+            let bannerClass = 'deadline-banner';
+            let message = '';
+            let icon = '📅';
+
+            if (isPassed) {
+                bannerClass += ' expired';
+                message = `⚠️ Scadenza superata! La deadline per ${formatMonth(monthValue)} era il ${deadlineStr}`;
+                icon = '⛔';
+            } else if (daysUntil <= 3) {
+                bannerClass += ' close';
+                message = `🚨 URGENTE! Mancano solo ${daysUntil} giorni alla scadenza: ${deadlineStr}`;
+                icon = '🚨';
+            } else if (daysUntil <= 7) {
+                message = `⏰ Scadenza vicina: ${deadlineStr} (${daysUntil} giorni)`;
+                icon = '⏰';
+            } else {
+                message = `📅 Scadenza invio desiderata: ${deadlineStr} (${daysUntil} giorni)`;
+            }
+
+            container.innerHTML = `<div class="${bannerClass}">${message}</div>`;
+        }
+
+        // Show Firebase status
+        function showFirebaseStatus() {
+            const statusDiv = document.getElementById('firebaseStatus');
+            const statusDot = statusDiv.querySelector('.status-dot');
+            const statusText = statusDiv.querySelector('span');
+
+            if (firebaseInitialized) {
+                statusDiv.classList.remove('hidden', 'disconnected');
+                statusDiv.classList.add('connected');
+                statusDot.classList.remove('red');
+                statusDot.classList.add('green');
+                statusText.textContent = 'Database online connesso';
+            } else if (!isFirebaseConfigured) {
+                statusDiv.classList.remove('hidden', 'connected');
+                statusDiv.classList.add('disconnected');
+                statusDot.classList.remove('green');
+                statusDot.classList.add('red');
+                statusText.textContent = 'Configurazione Firebase richiesta';
+                document.getElementById('setupInstructions').classList.remove('hidden');
+            } else {
+                statusDiv.classList.remove('hidden', 'connected');
+                statusDiv.classList.add('disconnected');
+                statusDot.classList.remove('green');
+                statusDot.classList.add('red');
+                statusText.textContent = 'Errore connessione database';
+            }
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            showFirebaseStatus();
+            
+            const passwordField = document.getElementById('password');
+            if (passwordField) {
+                passwordField.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') login();
+                });
+            }
+        });
+
+        // Login function
+        async function login() {
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value;
+
+            if (users[username] && users[username].password === password) {
+                currentUser = {
+                    username: username,
+                    role: users[username].role,
+                    name: users[username].name
+                };
+
+                document.getElementById('loginScreen').classList.add('hidden');
+                document.getElementById('loginError').classList.add('hidden');
+
+                if (currentUser.role === 'admin') {
+                    document.getElementById('adminScreen').classList.remove('hidden');
+                    await loadAdminData();
+                } else {
+                    document.getElementById('userScreen').classList.remove('hidden');
+                    document.getElementById('userBadge').textContent = `👨‍⚕️ ${currentUser.name}`;
+                    await loadUserRequests();
+                    
+                    // Set default month to next month
+                    const now = new Date();
+                    const nextMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+                    const monthStr = `${nextMonth.getFullYear()}-${String(nextMonth.getMonth() + 1).padStart(2, '0')}`;
+                    document.getElementById('requestMonth').value = monthStr;
+                    updateDaysList();
+                    displayDeadlineBanner('deadlineBanner');
+                }
+            } else {
+                document.getElementById('loginError').classList.remove('hidden');
+            }
+        }
+
+        // Logout function
+        function logout() {
+            currentUser = null;
+            selectedDays = {};
+            document.getElementById('loginScreen').classList.remove('hidden');
+            document.getElementById('userScreen').classList.add('hidden');
+            document.getElementById('adminScreen').classList.add('hidden');
+            document.getElementById('username').value = '';
+            document.getElementById('password').value = '';
+        }
+
+        // Update days list
+        function updateDaysList() {
+            const monthInput = document.getElementById('requestMonth');
+            if (!monthInput || !monthInput.value) return;
+
+            const monthValue = monthInput.value;
+            const [year, month] = monthValue.split('-');
+            const daysInMonth = new Date(year, month, 0).getDate();
+            const daysGrid = document.getElementById('daysGrid');
+            
+            if (!daysGrid) return;
+            
+            selectedDays = {};
+            const prefsContainer = document.getElementById('selectedDaysPreferences');
+            if (prefsContainer) prefsContainer.innerHTML = '';
+            
+            const isPassed = isDeadlinePassed(monthValue);
+            
+            let html = '';
+            for (let day = 1; day <= daysInMonth; day++) {
+                const date = new Date(year, month - 1, day);
+                const isWeekend = date.getDay() === 0 || date.getDay() === 6;
+                const weekendClass = isWeekend ? 'weekend' : '';
+                const disabledAttr = isPassed ? 'disabled' : '';
+                html += `<button type="button" class="day-button ${weekendClass}" onclick="toggleDay(${day})" ${disabledAttr}>${day}</button>`;
+            }
+            
+            daysGrid.innerHTML = html;
+            displayDeadlineBanner('deadlineBanner');
+
+            // Update submit button state
+            const submitBtn = document.getElementById('submitBtn');
+            if (submitBtn) {
+                submitBtn.disabled = isPassed;
+                if (isPassed) {
+                    submitBtn.textContent = '⛔ Scadenza superata - Invio non consentito';
+                } else {
+                    submitBtn.textContent = 'Invia Desiderata';
+                }
+            }
+        }
+
+        // Toggle day selection
+        function toggleDay(day) {
+            const monthInput = document.getElementById('requestMonth');
+            if (!monthInput || !monthInput.value) {
+                showUserAlert('Seleziona prima il mese', 'error');
+                return;
+            }
+
+            if (isDeadlinePassed(monthInput.value)) {
+                showUserAlert('Non puoi modificare le desiderata dopo la scadenza', 'error');
+                return;
+            }
+
+            const buttons = document.querySelectorAll('.day-button');
+            const button = buttons[day - 1];
+            
+            if (selectedDays[day]) {
+                delete selectedDays[day];
+                button.classList.remove('selected');
+            } else {
+                selectedDays[day] = { preference: 'Mattina', note: '' };
+                button.classList.add('selected');
+            }
+            
+            updatePreferencesDisplay();
+        }
+
+        // Update preferences display
+        function updatePreferencesDisplay() {
+            const container = document.getElementById('selectedDaysPreferences');
+            const monthInput = document.getElementById('requestMonth');
+            
+            if (!container || !monthInput) return;
+            
+            if (Object.keys(selectedDays).length === 0) {
+                container.innerHTML = '';
+                return;
+            }
+
+            const monthValue = monthInput.value;
+            const [year, month] = monthValue.split('-');
+            const sortedDays = Object.keys(selectedDays).sort((a, b) => parseInt(a) - parseInt(b));
+            
+            container.innerHTML = sortedDays.map(day => {
+                const date = new Date(year, month - 1, day);
+                const dayName = date.toLocaleDateString('it-IT', { weekday: 'long' });
+                const dayData = selectedDays[day];
+                const preference = typeof dayData === 'string' ? dayData : dayData.preference;
+                const note = typeof dayData === 'object' ? dayData.note || '' : '';
+                
+                return `
+                    <div class="preference-card">
+                        <div class="preference-header">
+                            <span class="day-badge">${day} - ${dayName}</span>
+                            <button type="button" class="remove-day" onclick="removeDay(${day})">✕ Rimuovi</button>
+                        </div>
+                        <select class="preference-select" onchange="updateDayPreference(${day}, this.value)" style="margin-bottom: 10px;">
+                            <option value="Mattina" ${preference === 'Mattina' ? 'selected' : ''}>Turno Mattina</option>
+                            <option value="Pomeriggio" ${preference === 'Pomeriggio' ? 'selected' : ''}>Turno Pomeriggio</option>
+                            <option value="Notte" ${preference === 'Notte' ? 'selected' : ''}>Turno Notte</option>
+                            <option value="Riposo" ${preference === 'Riposo' ? 'selected' : ''}>Riposo / Ferie</option>
+                            <option value="Non Disponibile" ${preference === 'Non Disponibile' ? 'selected' : ''}>Non Disponibile</option>
+                            <option value="Indifferente" ${preference === 'Indifferente' ? 'selected' : ''}>Indifferente</option>
+                        </select>
+                        <input type="text" 
+                               class="preference-select" 
+                               placeholder="Note per questo giorno (opzionale)..." 
+                               value="${note}"
+                               onchange="updateDayNote(${day}, this.value)"
+                               style="margin-top: 0;">
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Update day preference
+        function updateDayPreference(day, preference) {
+            if (typeof selectedDays[day] === 'object') {
+                selectedDays[day].preference = preference;
+            } else {
+                selectedDays[day] = { preference: preference, note: '' };
+            }
+        }
+
+        // Update day note
+        function updateDayNote(day, note) {
+            if (typeof selectedDays[day] === 'object') {
+                selectedDays[day].note = note;
+            } else {
+                selectedDays[day] = { preference: selectedDays[day] || 'Mattina', note: note };
+            }
+        }
+
+        // Remove day
+        function removeDay(day) {
+            delete selectedDays[day];
+            const buttons = document.querySelectorAll('.day-button');
+            if (buttons[day - 1]) {
+                buttons[day - 1].classList.remove('selected');
+            }
+            updatePreferencesDisplay();
+        }
+
+        // Submit request
+        async function submitRequest() {
+            if (!firebaseInitialized) {
+                showUserAlert('Database non disponibile. Configura Firebase per continuare.', 'error');
+                return;
+            }
+
+            const month = document.getElementById('requestMonth').value;
+            const notes = document.getElementById('notes').value.trim();
+
+            if (!month) {
+                showUserAlert('Seleziona il mese di riferimento', 'error');
+                return;
+            }
+
+            if (isDeadlinePassed(month)) {
+                showUserAlert('Non puoi inviare desiderata dopo la scadenza', 'error');
+                return;
+            }
+
+            if (Object.keys(selectedDays).length === 0) {
+                showUserAlert('Seleziona almeno un giorno', 'error');
+                return;
+            }
+
+            const request = {
+                username: currentUser.username,
+                name: currentUser.name,
+                month: month,
+                days: selectedDays,
+                notes: notes,
+                timestamp: firebase.firestore.FieldValue.serverTimestamp()
+            };
+
+            try {
+                await db.collection('requests').add(request);
+                showUserAlert('Desiderata inviata con successo!', 'success');
+                
+                selectedDays = {};
+                document.getElementById('notes').value = '';
+                updateDaysList();
+                await loadUserRequests();
+            } catch (error) {
+                console.error('Errore:', error);
+                showUserAlert('Errore durante l\'invio. Riprova.', 'error');
+            }
+        }
+
+        // Show user alert
+        function showUserAlert(message, type) {
+            const alertDiv = document.getElementById('userAlert');
+            if (!alertDiv) return;
+            
+            alertDiv.className = `alert alert-${type === 'success' ? 'success' : 'error'}`;
+            alertDiv.textContent = message;
+            alertDiv.classList.remove('hidden');
+
+            setTimeout(() => {
+                alertDiv.classList.add('hidden');
+            }, 5000);
+        }
+
+        // Load user requests
+        async function loadUserRequests() {
+            if (!firebaseInitialized) return;
+
+            const container = document.getElementById('userRequests');
+            if (!container) return;
+            
+            container.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
+
+            try {
+                const snapshot = await db.collection('requests')
+                    .where('username', '==', currentUser.username)
+                    .orderBy('timestamp', 'desc')
+                    .get();
+
+                if (snapshot.empty) {
+                    container.innerHTML = `
+                        <div class="empty-state">
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                            </svg>
+                            <p>Nessuna richiesta precedente</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                const requests = [];
+                snapshot.forEach(doc => {
+                    requests.push({ id: doc.id, ...doc.data() });
+                });
+                
+                container.innerHTML = requests.map(req => {
+                    const daysList = Object.entries(req.days || {})
+                        .sort((a, b) => parseInt(a[0]) - parseInt(b[0]))
+                        .map(([day, data]) => {
+                            const pref = typeof data === 'string' ? data : data.preference;
+                            const note = typeof data === 'object' ? data.note : '';
+                            return `<div style="padding: 8px 0; border-bottom: 1px solid #e2e8f0;">
+                                <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                                    <span style="font-weight: 600;">Giorno ${day}</span>
+                                    <span style="color: #667eea;">${pref}</span>
+                                </div>
+                                ${note ? `<div style="font-size: 13px; color: #718096; padding-left: 10px;">📝 ${note}</div>` : ''}
+                            </div>`;
+                        })
+                        .join('');
+                    
+                    const timestamp = req.timestamp ? req.timestamp.toDate() : new Date();
+                    
+                    return `
+                        <div class="request-card">
+                            <div class="request-header">
+                                <span class="request-month">${formatMonth(req.month)}</span>
+                                <small style="color: #a0aec0;">${formatDate(timestamp)}</small>
+                            </div>
+                            <div style="background: white; padding: 10px; border-radius: 6px; margin-bottom: 10px;">
+                                <strong style="color: #4a5568; display: block; margin-bottom: 8px;">Preferenze per giorno:</strong>
+                                ${daysList}
+                            </div>
+                            ${req.notes ? `<div class="request-detail"><strong>Note generali:</strong> ${req.notes}</div>` : ''}
+                        </div>
+                    `;
+                }).join('');
+            } catch (error) {
+                console.error('Errore:', error);
+                container.innerHTML = '<p style="color: #e53e3e;">Errore nel caricamento delle richieste.</p>';
+            }
+        }
+
+        // Load admin data
+        async function loadAdminData() {
+            if (!firebaseInitialized) return;
+
+            try {
+                const snapshot = await db.collection('requests').get();
+                const requests = [];
+                snapshot.forEach(doc => {
+                    const data = doc.data();
+                    requests.push({
+                        id: doc.id,
+                        ...data,
+                        timestamp: data.timestamp ? data.timestamp.toDate() : new Date()
+                    });
+                });
+
+                document.getElementById('totalRequests').textContent = requests.length;
+                
+                const uniqueUsers = new Set(requests.map(r => r.username));
+                document.getElementById('activeUsers').textContent = uniqueUsers.size;
+
+                const now = new Date();
+                const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+                const currentMonthReqs = requests.filter(r => r.month === currentMonth);
+                document.getElementById('currentMonthRequests').textContent = currentMonthReqs.length;
+
+                const months = [...new Set(requests.map(r => r.month))].sort().reverse();
+                const filterSelect = document.getElementById('filterMonth');
+                filterSelect.innerHTML = '<option value="">Tutti i mesi</option>' + 
+                    months.map(m => `<option value="${m}">${formatMonth(m)}</option>`).join('');
+
+                displayAllRequests(requests);
+                
+                // Display admin deadline info
+                const adminBanner = document.getElementById('adminDeadlineBanner');
+                if (adminBanner && months.length > 0) {
+                    const nextMonth = months[0];
+                    const [year, month] = nextMonth.split('-');
+                    const deadline = calculateDeadline(parseInt(year), parseInt(month));
+                    const deadlineStr = deadline.toLocaleDateString('it-IT', { 
+                        weekday: 'long', 
+                        day: 'numeric', 
+                        month: 'long', 
+                        year: 'numeric' 
+                    });
+                    adminBanner.innerHTML = `<div class="alert alert-info">
+                        📅 Prossima scadenza invio desiderata: <strong>${deadlineStr}</strong> (${formatMonth(nextMonth)})
+                    </div>`;
+                }
+            } catch (error) {
+                console.error('Error loading admin data:', error);
+            }
+        }
+
+        // Display all requests
+        function displayAllRequests(requests) {
+            const container = document.getElementById('allRequests');
+            if (!container) return;
+
+            if (requests.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                        </svg>
+                        <p>Nessuna richiesta presente</p>
+                    </div>
+                `;
+                return;
+            }
+
+            requests.sort((a, b) => {
+                if (a.month !== b.month) return b.month.localeCompare(a.month);
+                return b.timestamp - a.timestamp;
+            });
+
+            container.innerHTML = requests.map(req => {
+                const daysList = Object.entries(req.days || {})
+                    .sort((a, b) => parseInt(a[0]) - parseInt(b[0]))
+                    .map(([day, data]) => {
+                        const pref = typeof data === 'string' ? data : data.preference;
+                        const note = typeof data === 'object' ? data.note : '';
+                        return `<div style="padding: 8px 0; border-bottom: 1px solid #e2e8f0;">
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                                <span style="font-weight: 600;">Giorno ${day}</span>
+                                <span style="color: #667eea;">${pref}</span>
+                            </div>
+                            ${note ? `<div style="font-size: 13px; color: #718096; padding-left: 10px;">📝 ${note}</div>` : ''}
+                        </div>`;
+                    })
+                    .join('');
+                
+                return `
+                    <div class="request-card">
+                        <div class="request-header">
+                            <span class="request-name">${req.name}</span>
+                            <span class="request-month">${formatMonth(req.month)}</span>
+                        </div>
+                        <div style="background: white; padding: 10px; border-radius: 6px; margin-bottom: 10px;">
+                            <strong style="color: #4a5568; display: block; margin-bottom: 8px;">Preferenze per giorno:</strong>
+                            ${daysList}
+                        </div>
+                        ${req.notes ? `<div class="request-detail"><strong>Note generali:</strong> ${req.notes}</div>` : ''}
+                        <div style="margin-top: 10px; padding-top: 10px; border-top: 1px solid #e2e8f0;">
+                            <small style="color: #a0aec0;">Inviata il ${formatDate(req.timestamp)}</small>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Filter requests
+        async function filterRequests() {
+            if (!firebaseInitialized) return;
+
+            const selectedMonth = document.getElementById('filterMonth').value;
+            
+            try {
+                let query = db.collection('requests');
+                
+                if (selectedMonth) {
+                    query = query.where('month', '==', selectedMonth);
+                }
+
+                const snapshot = await query.get();
+                const requests = [];
+                snapshot.forEach(doc => {
+                    const data = doc.data();
+                    requests.push({
+                        id: doc.id,
+                        ...data,
+                        timestamp: data.timestamp ? data.timestamp.toDate() : new Date()
+                    });
+                });
+
+                displayAllRequests(requests);
+            } catch (error) {
+                console.error('Error filtering requests:', error);
+            }
+        }
+
+        // Delete my data
+        async function deleteMyData() {
+            if (!firebaseInitialized) {
+                alert('Database non disponibile');
+                return;
+            }
+
+            const confirmed = confirm(
+                '⚠️ ATTENZIONE!\n\n' +
+                'Questa azione cancellerà TUTTE le tue richieste precedenti in modo permanente.\n\n' +
+                'Sei sicuro di voler continuare?'
+            );
+            
+            if (!confirmed) return;
+
+            const doubleCheck = confirm(
+                'CONFERMA FINALE\n\n' +
+                'Stai per cancellare definitivamente tutte le tue desiderata.\n' +
+                'Questa azione NON può essere annullata.\n\n' +
+                'Confermi la cancellazione?'
+            );
+
+            if (!doubleCheck) return;
+
+            try {
+                const snapshot = await db.collection('requests')
+                    .where('username', '==', currentUser.username)
+                    .get();
+
+                const batch = db.batch();
+                snapshot.forEach(doc => {
+                    batch.delete(doc.ref);
+                });
+
+                await batch.commit();
+                
+                showUserAlert('Tutte le tue richieste sono state cancellate', 'success');
+                await loadUserRequests();
+            } catch (error) {
+                console.error('Errore:', error);
+                showUserAlert('Errore durante la cancellazione. Riprova.', 'error');
+            }
+        }
+
+        // Delete all data (admin only)
+        async function deleteAllData() {
+            if (!firebaseInitialized) {
+                alert('Database non disponibile');
+                return;
+            }
+
+            if (currentUser.role !== 'admin') {
+                alert('❌ Funzione riservata agli amministratori');
+                return;
+            }
+
+            const confirmed = confirm(
+                '🚨 ATTENZIONE AMMINISTRATORE! 🚨\n\n' +
+                'Questa azione cancellerà TUTTE le richieste di TUTTI i medici in modo permanente.\n\n' +
+                'Sei ASSOLUTAMENTE sicuro di voler continuare?'
+            );
+            
+            if (!confirmed) return;
+
+            const password = prompt(
+                'CONFERMA FINALE\n\n' +
+                'Per procedere, inserisci la tua password admin:'
+            );
+
+            if (password !== users['admin'].password) {
+                alert('❌ Password errata. Operazione annullata.');
+                return;
+            }
+
+            try {
+                const snapshot = await db.collection('requests').get();
+                const batch = db.batch();
+                snapshot.forEach(doc => {
+                    batch.delete(doc.ref);
+                });
+
+                await batch.commit();
+                alert('✅ Tutti i dati sono stati cancellati con successo');
+                await loadAdminData();
+            } catch (error) {
+                console.error('Errore:', error);
+                alert('❌ Errore durante la cancellazione. Riprova.');
+            }
+        }
+
+        // Utility functions
+        function formatMonth(monthStr) {
+            const [year, month] = monthStr.split('-');
+            const months = ['Gennaio', 'Febbraio', 'Marzo', 'Aprile', 'Maggio', 'Giugno', 
+                           'Luglio', 'Agosto', 'Settembre', 'Ottobre', 'Novembre', 'Dicembre'];
+            return `${months[parseInt(month) - 1]} ${year}`;
+        }
+
+        function formatDate(date) {
+            if (!(date instanceof Date)) {
+                date = new Date(date);
+            }
+            return date.toLocaleDateString('it-IT', { 
+                day: '2-digit', 
+                month: '2-digit', 
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+    </script>
+</body>
+</html>
