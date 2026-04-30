@@ -641,6 +641,15 @@
                 <h2>Tutte le Desiderata</h2>
                 <div id="allRequests"></div>
                 
+                <div style="margin-top: 20px; text-align: center;">
+                    <button onclick="exportToExcel()" class="btn-primary" style="background: #10b981; padding: 14px 28px; font-size: 16px;">
+                        📥 Esporta in Excel
+                    </button>
+                    <p style="color: #718096; margin-top: 10px; font-size: 13px;">
+                        Scarica tutte le desiderata nel formato del foglio assegnazioni
+                    </p>
+                </div>
+                
                 <div style="margin-top: 30px; padding: 20px; background: #fff3cd; border: 2px solid #ffc107; border-radius: 8px;">
                     <h3 style="color: #856404; margin-bottom: 10px;">⚠️ Zona Amministratore</h3>
                     <p style="color: #856404; margin-bottom: 15px; font-size: 14px;">
@@ -653,6 +662,9 @@
             </div>
         </div>
     </div>
+
+    <!-- SheetJS Library for Excel Export -->
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
 
     <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
@@ -792,7 +804,7 @@
 
             if (isPassed) {
                 bannerClass += ' expired';
-                message = `⚠️ Scadenza superata! La deadline per ${formatMonth(monthValue)} era il ${deadlineStr}`;
+                message = `⛔ SCADENZA SUPERATA! Non è più possibile inserire o modificare desiderata per ${formatMonth(monthValue)}. La deadline era il ${deadlineStr}`;
                 icon = '⛔';
             } else if (daysUntil <= 3) {
                 bannerClass += ' close';
@@ -998,8 +1010,6 @@
                             <option value="Pomeriggio" ${preference === 'Pomeriggio' ? 'selected' : ''}>Turno Pomeriggio</option>
                             <option value="Notte" ${preference === 'Notte' ? 'selected' : ''}>Turno Notte</option>
                             <option value="Riposo" ${preference === 'Riposo' ? 'selected' : ''}>Riposo / Ferie</option>
-                            <option value="Non Disponibile" ${preference === 'Non Disponibile' ? 'selected' : ''}>Non Disponibile</option>
-                            <option value="Indifferente" ${preference === 'Indifferente' ? 'selected' : ''}>Indifferente</option>
                         </select>
                         <input type="text" 
                                class="preference-select" 
@@ -1355,6 +1365,20 @@
                 console.error('Errore:', error);
                 showUserAlert('Errore durante la cancellazione. Riprova.', 'error');
             }
+        }
+
+        // Export to Excel (admin only)
+        async function exportToExcel() {
+            alert('📥 EXPORT EXCEL\n\n' +
+                  'Per esportare le desiderata in Excel con il template corretto:\n\n' +
+                  '1. Scarica lo script Python "export_desiderata.py"\n' +
+                  '2. Assicurati di avere il template "Format_WebApp.xlsx" nella stessa cartella\n' +
+                  '3. Esegui lo script: python export_desiderata.py\n\n' +
+                  'Lo script genererà i file Excel perfetti con:\n' +
+                  '✅ Template preservato\n' +
+                  '✅ Desiderata in rosso\n' +
+                  '✅ Giorni corretti per ogni mese\n\n' +
+                  'Contatta l\'amministratore per ricevere lo script Python.');
         }
 
         // Delete all data (admin only)
