@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Desiderata Reparto - Policlinico</title>
+    <title>Desiderata Reparto - Chirurgia Generale 1</title>
     <style>
         * {
             margin: 0;
@@ -525,7 +525,7 @@
         <!-- Login Screen -->
         <div id="loginScreen" class="card">
             <h1>🏥 Desiderata Reparto</h1>
-            <p class="subtitle">A.O.U. Policlinico "G. Rodolico – San Marco"</p>
+            <p class="subtitle">Chirurgia Generale 1 - A.O.U. Policlinico Catania - P.O. San Marco</p>
             
             <div id="firebaseStatus" class="firebase-status hidden">
                 <div class="status-dot"></div>
@@ -980,7 +980,7 @@
                 delete selectedDays[day];
                 button.classList.remove('selected');
             } else {
-                selectedDays[day] = { preference: 'Mattina', note: '' };
+                selectedDays[day] = { preference: '', note: '' };
                 button.classList.add('selected');
             }
             
@@ -1016,12 +1016,67 @@
                             <span class="day-badge">${day} - ${dayName}</span>
                             <button type="button" class="remove-day" onclick="removeDay(${day})">✕ Rimuovi</button>
                         </div>
-                        <select class="preference-select" onchange="updateDayPreference(${day}, this.value)" style="margin-bottom: 10px;">
-                            <option value="Mattina" ${preference === 'Mattina' ? 'selected' : ''}>Turno Mattina</option>
-                            <option value="Pomeriggio" ${preference === 'Pomeriggio' ? 'selected' : ''}>Turno Pomeriggio</option>
-                            <option value="Notte" ${preference === 'Notte' ? 'selected' : ''}>Turno Notte</option>
-                            <option value="Riposo" ${preference === 'Riposo' ? 'selected' : ''}>Riposo / Ferie</option>
-                        </select>
+                        
+                        <div style="margin-bottom: 15px;">
+                            <div style="font-weight: 500; margin-bottom: 10px; font-size: 14px;">📋 Quando sei disponibile?</div>
+                            
+                            <!-- Mattina -->
+                            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px; padding: 8px; background: #f8f9fa; border-radius: 6px;">
+                                <label style="display: flex; align-items: center; gap: 6px; flex: 1; cursor: pointer;">
+                                    <input type="checkbox" id="morning_${day}" onchange="updateAvailability(${day})" ${preference.includes('M') ? 'checked' : ''}>
+                                    <span>☀️ Mattina</span>
+                                </label>
+                                <select id="morning_rep_${day}" onchange="updateAvailability(${day})" style="padding: 4px 8px; border-radius: 4px; border: 1px solid #ddd;" ${!preference.includes('M') ? 'disabled' : ''}>
+                                    <option value="no" ${preference === 'M' ? 'selected' : ''}>NO</option>
+                                    <option value="mr" ${preference === 'MR' ? 'selected' : ''}>SÌ (MR)</option>
+                                </select>
+                            </div>
+                            
+                            <!-- Pomeriggio -->
+                            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px; padding: 8px; background: #f8f9fa; border-radius: 6px;">
+                                <label style="display: flex; align-items: center; gap: 6px; flex: 1; cursor: pointer;">
+                                    <input type="checkbox" id="afternoon_${day}" onchange="updateAvailability(${day})" ${preference.includes('P') ? 'checked' : ''}>
+                                    <span>🌤️ Pomeriggio</span>
+                                </label>
+                                <select id="afternoon_rep_${day}" onchange="updateAvailability(${day})" style="padding: 4px 8px; border-radius: 4px; border: 1px solid #ddd;" ${!preference.includes('P') ? 'disabled' : ''}>
+                                    <option value="no" ${preference === 'P' ? 'selected' : ''}>NO</option>
+                                    <option value="pr" ${preference === 'PR' ? 'selected' : ''}>SÌ (PR)</option>
+                                </select>
+                            </div>
+                            
+                            <!-- Notte -->
+                            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px; padding: 8px; background: #f8f9fa; border-radius: 6px;">
+                                <label style="display: flex; align-items: center; gap: 6px; cursor: pointer;">
+                                    <input type="checkbox" id="night_${day}" onchange="updateAvailability(${day})" ${preference.includes('N') && !preference.includes('NOTE') ? 'checked' : ''}>
+                                    <span>🌙 Notte</span>
+                                </label>
+                            </div>
+                            
+                            <div style="text-align: center; margin: 12px 0; color: #718096; font-size: 12px; font-weight: 600;">OPPURE</div>
+                            
+                            <!-- Devo essere libero -->
+                            <div style="padding: 8px; background: #fff3cd; border-radius: 6px; border: 1px solid #ffc107;">
+                                <label style="display: flex; align-items: center; gap: 6px; margin-bottom: 8px; cursor: pointer; font-weight: 500;">
+                                    <input type="checkbox" id="free_${day}" onchange="updateAvailability(${day})" ${['RS','AA','U1','Z'].includes(preference) ? 'checked' : ''}>
+                                    <span>Devo essere libero</span>
+                                </label>
+                                <div id="free_options_${day}" style="padding-left: 24px; ${!['RS','AA','U1','Z'].includes(preference) ? 'display:none;' : ''}">
+                                    <label style="display: block; margin-bottom: 4px; cursor: pointer; font-size: 13px;">
+                                        <input type="radio" name="free_reason_${day}" value="RS" onchange="updateAvailability(${day})" ${preference === 'RS' ? 'checked' : ''}> RS - Riposo
+                                    </label>
+                                    <label style="display: block; margin-bottom: 4px; cursor: pointer; font-size: 13px;">
+                                        <input type="radio" name="free_reason_${day}" value="AA" onchange="updateAvailability(${day})" ${preference === 'AA' ? 'checked' : ''}> AA - Ferie
+                                    </label>
+                                    <label style="display: block; margin-bottom: 4px; cursor: pointer; font-size: 13px;">
+                                        <input type="radio" name="free_reason_${day}" value="U1" onchange="updateAvailability(${day})" ${preference === 'U1' ? 'checked' : ''}> U1 - Aggiornamento
+                                    </label>
+                                    <label style="display: block; cursor: pointer; font-size: 13px;">
+                                        <input type="radio" name="free_reason_${day}" value="Z" onchange="updateAvailability(${day})" ${preference === 'Z' ? 'checked' : ''}> Z - Corso aziendale
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                        
                         <input type="text" 
                                class="preference-select" 
                                placeholder="Note per questo giorno (opzionale)..." 
@@ -1033,8 +1088,71 @@
             }).join('');
         }
 
-        // Update day preference
-        function updateDayPreference(day, preference) {
+        // Update availability based on checkboxes
+        function updateAvailability(day) {
+            const morning = document.getElementById(`morning_${day}`);
+            const morningRep = document.getElementById(`morning_rep_${day}`);
+            const afternoon = document.getElementById(`afternoon_${day}`);
+            const afternoonRep = document.getElementById(`afternoon_rep_${day}`);
+            const night = document.getElementById(`night_${day}`);
+            const free = document.getElementById(`free_${day}`);
+            const freeOptions = document.getElementById(`free_options_${day}`);
+            
+            // Toggle morning rep dropdown
+            if (morning && morningRep) {
+                morningRep.disabled = !morning.checked;
+            }
+            
+            // Toggle afternoon rep dropdown
+            if (afternoon && afternoonRep) {
+                afternoonRep.disabled = !afternoon.checked;
+            }
+            
+            // Toggle free options
+            if (free && freeOptions) {
+                freeOptions.style.display = free.checked ? 'block' : 'none';
+                
+                // Disable other checkboxes if free is checked
+                if (morning) morning.disabled = free.checked;
+                if (afternoon) afternoon.disabled = free.checked;
+                if (night) night.disabled = free.checked;
+            }
+            
+            // Build preference string
+            let preference = '';
+            
+            if (free && free.checked) {
+                const freeReason = document.querySelector(`input[name="free_reason_${day}"]:checked`);
+                if (freeReason) {
+                    preference = freeReason.value; // RS, AA, U1, or Z
+                }
+            } else {
+                const availability = [];
+                
+                if (morning && morning.checked) {
+                    if (morningRep && morningRep.value === 'mr') {
+                        availability.push('MR');
+                    } else {
+                        availability.push('M');
+                    }
+                }
+                
+                if (afternoon && afternoon.checked) {
+                    if (afternoonRep && afternoonRep.value === 'pr') {
+                        availability.push('PR');
+                    } else {
+                        availability.push('P');
+                    }
+                }
+                
+                if (night && night.checked) {
+                    availability.push('N');
+                }
+                
+                preference = availability.join(', ');
+            }
+            
+            // Update selectedDays
             if (typeof selectedDays[day] === 'object') {
                 selectedDays[day].preference = preference;
             } else {
