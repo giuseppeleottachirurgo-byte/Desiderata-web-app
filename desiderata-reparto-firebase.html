@@ -753,69 +753,42 @@
                 <h2>Tutte le Desiderata</h2>
                 <div id="allRequests"></div>
                 
-                <!-- EXPORT EXCEL CON TEMPLATE -->
-                <div style="margin-top: 30px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 12px; padding: 25px; color: white;">
-                    <h3 style="color: white; margin-bottom: 15px; font-size: 20px;">📥 Export Excel con Template Formattato</h3>
-                    <p style="margin-bottom: 20px; opacity: 0.95;">
-                        Per esportare le desiderata nel tuo template Excel con celle rosse, usa lo script Python sul tuo computer.
+                <div style="margin-top: 20px; text-align: center;">
+                    <button onclick="showExportInstructions()" class="btn-primary" style="background: #10b981; padding: 14px 28px; font-size: 16px;">
+                        📥 Esporta in Excel
+                    </button>
+                    <p style="color: #718096; margin-top: 10px; font-size: 13px;">
+                        Esporta le desiderata nel template Excel con celle rosse
                     </p>
-                    
-                    <div style="background: rgba(255,255,255,0.15); border-radius: 8px; padding: 20px; margin-bottom: 20px; backdrop-filter: blur(10px);">
-                        <div style="display: flex; align-items: start; gap: 15px; margin-bottom: 15px;">
-                            <div style="background: white; color: #667eea; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; flex-shrink: 0;">1</div>
-                            <div style="flex: 1;">
-                                <strong style="display: block; margin-bottom: 5px;">Apri il Terminale</strong>
-                                <code style="background: rgba(0,0,0,0.2); padding: 4px 8px; border-radius: 4px; font-size: 13px;">Spotlight → "Terminale" → Invio</code>
-                            </div>
-                        </div>
-                        
-                        <div style="display: flex; align-items: start; gap: 15px; margin-bottom: 15px;">
-                            <div style="background: white; color: #667eea; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; flex-shrink: 0;">2</div>
-                            <div style="flex: 1;">
-                                <strong style="display: block; margin-bottom: 5px;">Vai nella cartella dello script</strong>
-                                <code style="background: rgba(0,0,0,0.2); padding: 4px 8px; border-radius: 4px; font-size: 13px; display: block; margin-top: 5px;">cd ~/Downloads</code>
-                                <span style="font-size: 12px; opacity: 0.9; display: block; margin-top: 5px;">(o dove hai salvato lo script)</span>
-                            </div>
-                        </div>
-                        
-                        <div style="display: flex; align-items: start; gap: 15px; margin-bottom: 15px;">
-                            <div style="background: white; color: #667eea; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; flex-shrink: 0;">3</div>
-                            <div style="flex: 1;">
-                                <strong style="display: block; margin-bottom: 5px;">Esegui lo script Python</strong>
-                                <code style="background: rgba(0,0,0,0.2); padding: 4px 8px; border-radius: 4px; font-size: 13px; display: block; margin-top: 5px;">python3 export_desiderata.py</code>
-                            </div>
-                        </div>
-                        
-                        <div style="display: flex; align-items: start; gap: 15px;">
-                            <div style="background: white; color: #667eea; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; flex-shrink: 0;">4</div>
-                            <div style="flex: 1;">
-                                <strong style="display: block; margin-bottom: 5px;">Trova i file Excel</strong>
-                                <div style="font-size: 13px; margin-top: 5px;">
-                                    I file formattati saranno in: <code style="background: rgba(0,0,0,0.2); padding: 2px 6px; border-radius: 4px;">Export_Desiderata/</code>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div style="background: rgba(255,255,255,0.1); border-left: 4px solid white; padding: 12px 15px; border-radius: 4px;">
-                        <strong style="display: block; margin-bottom: 5px;">✨ Cosa otterrai:</strong>
-                        <ul style="margin: 0; padding-left: 20px; font-size: 14px; line-height: 1.8;">
-                            <li>Template Excel personalizzato (Format_WebApp.xlsx)</li>
-                            <li>Celle rosse con scritte bianche</li>
-                            <li>Un file per ogni mese</li>
-                            <li>Formattazione professionale</li>
-                        </ul>
-                    </div>
                 </div>
                 
-                <!-- EXPORT BASE (OPZIONALE) -->
-                <div style="margin-top: 20px; text-align: center; padding: 15px; background: #f7fafc; border-radius: 8px; border: 2px dashed #cbd5e0;">
-                    <button onclick="exportToExcel()" style="background: #718096; color: white; border: none; padding: 12px 24px; border-radius: 8px; font-size: 14px; cursor: pointer; font-weight: 600;">
-                        📊 Export Base (senza template)
-                    </button>
-                    <p style="color: #718096; margin-top: 8px; font-size: 12px;">
-                        Export rapido in Excel standard (senza formattazione personalizzata)
-                    </p>
+                <!-- Modal istruzioni export -->
+                <div id="exportModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center;">
+                    <div style="background: white; border-radius: 16px; padding: 30px; max-width: 600px; margin: 20px;">
+                        <h2 style="color: #2d3748; margin-bottom: 20px;">📥 Export Excel con Template</h2>
+                        
+                        <div style="background: #f7fafc; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+                            <p style="color: #4a5568; margin-bottom: 15px; font-size: 15px;">
+                                Per esportare con il template formattato, esegui questi comandi nel Terminale:
+                            </p>
+                            
+                            <div style="background: #2d3748; color: #fff; padding: 15px; border-radius: 6px; font-family: monospace; font-size: 14px; margin-bottom: 10px;">
+                                cd ~/Downloads
+                            </div>
+                            
+                            <div style="background: #2d3748; color: #fff; padding: 15px; border-radius: 6px; font-family: monospace; font-size: 14px;">
+                                python3 export_desiderata.py
+                            </div>
+                        </div>
+                        
+                        <p style="color: #718096; font-size: 14px; margin-bottom: 20px;">
+                            I file Excel saranno salvati in: <strong>Export_Desiderata/</strong>
+                        </p>
+                        
+                        <button onclick="closeExportModal()" style="background: #667eea; color: white; border: none; padding: 12px 24px; border-radius: 8px; font-size: 16px; cursor: pointer; width: 100%;">
+                            Ho capito
+                        </button>
+                    </div>
                 </div>
                 
                 <div style="margin-top: 30px; padding: 20px; background: #fff3cd; border: 2px solid #ffc107; border-radius: 8px;">
@@ -2435,6 +2408,22 @@
             } catch (error) {
                 console.error('Errore:', error);
                 showUserAlert('Errore durante la cancellazione. Riprova.', 'error');
+            }
+        }
+
+        // Show export instructions modal
+        function showExportInstructions() {
+            const modal = document.getElementById('exportModal');
+            if (modal) {
+                modal.style.display = 'flex';
+            }
+        }
+
+        // Close export instructions modal
+        function closeExportModal() {
+            const modal = document.getElementById('exportModal');
+            if (modal) {
+                modal.style.display = 'none';
             }
         }
 
