@@ -650,7 +650,16 @@
             
             <div class="form-group">
                 <label for="password">Password</label>
-                <input type="password" id="password" placeholder="Inserisci la tua password">
+                <div style="position: relative;">
+                    <input type="password" id="password" placeholder="Inserisci la tua password" style="padding-right: 45px;">
+                    <button type="button" onclick="togglePasswordVisibility()" 
+                            style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%);
+                                   background: none; border: none; cursor: pointer; font-size: 18px;
+                                   color: #718096; padding: 0; width: auto; box-shadow: none;"
+                            title="Mostra/nascondi password">
+                        👁️
+                    </button>
+                </div>
             </div>
             
             <button onclick="login()">Accedi</button>
@@ -1351,6 +1360,11 @@
                 statusDot.classList.add('red');
                 statusText.textContent = 'Errore connessione database';
             }
+        }
+
+        function togglePasswordVisibility() {
+            const input = document.getElementById('password');
+            input.type = input.type === 'password' ? 'text' : 'password';
         }
 
         document.addEventListener('DOMContentLoaded', () => {
