@@ -205,6 +205,35 @@
             50% { opacity: 0.8; }
         }
 
+        /* Admin deadline toggle */
+        .deadline-toggle-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: #ebf4ff;
+            border: 1px solid #bee3f8;
+            color: #2b6cb0;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-bottom: 15px;
+            transition: background 0.2s;
+            width: auto;
+        }
+        .deadline-toggle-btn:hover {
+            background: #dbeafe;
+            transform: none;
+            box-shadow: none;
+        }
+        .deadline-collapsible {
+            display: none;
+        }
+        .deadline-collapsible.open {
+            display: block;
+        }
+
         .request-card {
             background: #f7fafc;
             border: 1px solid #e2e8f0;
@@ -625,8 +654,6 @@
                     </select>
                 </div>
 
-                <div id="deadlineBanner"></div>
-
                 <!-- DRAFT MODE: Show calendar and preferences -->
                 <div id="draftMode" class="hidden">
                     <div class="form-group">
@@ -720,7 +747,13 @@
                     <button onclick="logout()" class="btn-secondary" style="width: auto; padding: 10px 20px;">Esci</button>
                 </div>
 
-                <div id="adminDeadlineBanner"></div>
+                <!-- DEADLINE NASCOSTA - toggle cliccabile -->
+                <div>
+                    <button class="deadline-toggle-btn" onclick="toggleAdminDeadline(this)">
+                        📅 Mostra scadenza <span>▼</span>
+                    </button>
+                    <div class="deadline-collapsible" id="adminDeadlineBanner"></div>
+                </div>
 
                 <div class="stats">
                     <div class="stat-card">
@@ -764,29 +797,23 @@
                 
                 <!-- Modal istruzioni export -->
                 <div id="exportModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center;">
-                    <div style="background: white; border-radius: 16px; padding: 30px; max-width: 600px; margin: 20px;">
-                        <h2 style="color: #2d3748; margin-bottom: 20px;">📥 Export Excel con Template</h2>
+                    <div style="background: white; border-radius: 16px; padding: 30px; max-width: 600px; width: 90%; margin: 20px;">
+                        <h2 style="color: #2d3748; margin-bottom: 20px;">📥 Export Excel</h2>
                         
-                        <div style="background: #f7fafc; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
-                            <p style="color: #4a5568; margin-bottom: 15px; font-size: 15px;">
-                                Per esportare con il template formattato, esegui questi comandi nel Terminale:
-                            </p>
-                            
-                            <div style="background: #2d3748; color: #fff; padding: 15px; border-radius: 6px; font-family: monospace; font-size: 14px; margin-bottom: 10px;">
-                                cd ~/Downloads
-                            </div>
-                            
-                            <div style="background: #2d3748; color: #fff; padding: 15px; border-radius: 6px; font-family: monospace; font-size: 14px;">
-                                python3 export_desiderata.py
-                            </div>
+                        <p style="color: #4a5568; margin-bottom: 15px; font-size: 15px;">
+                            Copia il comando e incollalo nel Terminale:
+                        </p>
+
+                        <div style="display: flex; align-items: center; background: #2d3748; border-radius: 8px; overflow: hidden; margin-bottom: 20px;">
+                            <code style="flex: 1; color: #68d391; padding: 14px 15px; font-family: monospace; font-size: 13px; line-height: 1.6;">cd ~/Desktop/Export_Desiderata && python3 export_desiderata_INTERATTIVO.py</code>
+                            <button onclick="copyCmd(this, 'cd ~/Desktop/Export_Desiderata && python3 export_desiderata_INTERATTIVO.py')" 
+                                    style="background: #4a5568; color: white; border: none; padding: 14px 16px; cursor: pointer; font-size: 13px; font-weight: 600; white-space: nowrap;">
+                                📋 Copia
+                            </button>
                         </div>
                         
-                        <p style="color: #718096; font-size: 14px; margin-bottom: 20px;">
-                            I file Excel saranno salvati in: <strong>Export_Desiderata/</strong>
-                        </p>
-                        
                         <button onclick="closeExportModal()" style="background: #667eea; color: white; border: none; padding: 12px 24px; border-radius: 8px; font-size: 16px; cursor: pointer; width: 100%;">
-                            Ho capito
+                            Chiudi
                         </button>
                     </div>
                 </div>
@@ -862,6 +889,63 @@
         let currentUser = null;
         let selectedDays = {};
 
+        // Aggiorna il banner deadline in base al mese selezionato
+        function updateAdminDeadlineBanner(selectedMonth) {
+            const adminBanner = document.getElementById('adminDeadlineBanner');
+            if (!adminBanner) return;
+
+            let dlYear, dlMonthNum, dlMonthKey;
+
+            if (selectedMonth) {
+                // Usa il mese selezionato nel filtro
+                [dlYear, dlMonthNum] = selectedMonth.split('-').map(Number);
+                dlMonthKey = selectedMonth;
+            } else {
+                // Nessun filtro: usa il prossimo mese
+                const now = new Date();
+                dlYear = now.getFullYear();
+                dlMonthNum = now.getMonth() + 2;
+                if (dlMonthNum > 12) { dlMonthNum = 1; dlYear++; }
+                dlMonthKey = `${dlYear}-${String(dlMonthNum).padStart(2, '0')}`;
+            }
+
+            const deadline = calculateDeadline(dlYear, dlMonthNum);
+            const now = new Date();
+            const diffMs = deadline - now;
+            const daysLeft = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+
+            const deadlineStr = deadline.toLocaleDateString('it-IT', { 
+                weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' 
+            });
+
+            let daysMsg = '';
+            let alertStyle = 'background:#bee3f8; color:#2c5282; border:1px solid #90cdf4;';
+            if (daysLeft < 0) {
+                daysMsg = ' <span style="color:#c53030; font-weight:700;">(scaduta)</span>';
+                alertStyle = 'background:#fed7d7; color:#742a2a; border:1px solid #fc8181;';
+            } else if (daysLeft === 0) {
+                daysMsg = ' <span style="color:#c05621; font-weight:700;">(scade oggi!)</span>';
+                alertStyle = 'background:#fef3c7; color:#744210; border:1px solid #f6ad55;';
+            } else if (daysLeft <= 3) {
+                daysMsg = ` <span style="color:#c05621; font-weight:700;">(mancano ${daysLeft} giorni!)</span>`;
+                alertStyle = 'background:#fef3c7; color:#744210; border:1px solid #f6ad55;';
+            } else {
+                daysMsg = ` <span style="color:#276749;">(mancano ${daysLeft} giorni)</span>`;
+            }
+
+            adminBanner.innerHTML = `<div class="alert" style="${alertStyle} padding:15px; border-radius:8px; margin-bottom:15px; font-weight:500;">
+                📅 Scadenza per <strong>${formatMonth(dlMonthKey)}</strong>: <strong>${deadlineStr}</strong>${daysMsg}
+            </div>`;
+        }
+
+        // Toggle admin deadline banner
+        function toggleAdminDeadline(btn) {
+            const panel = document.getElementById('adminDeadlineBanner');
+            const arrow = btn.querySelector('span');
+            panel.classList.toggle('open');
+            arrow.textContent = panel.classList.contains('open') ? '▲' : '▼';
+        }
+
         // Populate month selector with Italian month names
         function populateMonthSelector() {
             const select = document.getElementById('requestMonth');
@@ -925,7 +1009,7 @@
             const draftKey = `draft_${currentUser.username}_${month}`;
             
             const draft = {
-                month: month,  // Store which month this draft is for
+                month: month,
                 days: selectedDays,
                 notes: notes,
                 timestamp: Date.now()
@@ -961,7 +1045,6 @@
             document.getElementById('draftMode').classList.add('hidden');
             document.getElementById('savedMode').classList.remove('hidden');
 
-            // Display saved days list
             const savedDaysList = document.getElementById('savedDaysList');
             const sortedDays = Object.keys(selectedDays).sort((a, b) => parseInt(a) - parseInt(b));
 
@@ -999,7 +1082,6 @@
                 }).join('')}
             `;
 
-            // Display general notes
             const savedNotes = document.getElementById('savedNotes');
             const notes = document.getElementById('notes').value.trim();
             if (notes) {
@@ -1013,13 +1095,10 @@
             }
         }
 
-        // Edit single day - opens draft mode focused on that day
         function editSingleDay(day) {
-            // Switch to draft mode
             document.getElementById('savedMode').classList.add('hidden');
             document.getElementById('draftMode').classList.remove('hidden');
             
-            // Regenerate calendar
             const monthInput = document.getElementById('requestMonth');
             if (!monthInput || !monthInput.value) return;
             
@@ -1032,7 +1111,6 @@
             
             const isPassed = isDeadlinePassed(monthValue);
             
-            // Regenerate calendar with selected days
             let html = '';
             for (let d = 1; d <= daysInMonth; d++) {
                 const date = new Date(year, month - 1, d);
@@ -1044,11 +1122,8 @@
             }
             
             daysGrid.innerHTML = html;
-            
-            // Show preferences for all selected days
             updatePreferencesDisplay();
             
-            // Scroll to the specific day being edited
             setTimeout(() => {
                 const dayCard = document.querySelector(`#selectedDaysPreferences [id*="_${day}"]`);
                 if (dayCard) {
@@ -1057,12 +1132,10 @@
             }, 100);
         }
 
-        // Edit current draft (go back to draft mode)
         function editCurrentDraft() {
             document.getElementById('savedMode').classList.add('hidden');
             document.getElementById('draftMode').classList.remove('hidden');
             
-            // Regenerate calendar with current selections
             const monthInput = document.getElementById('requestMonth');
             if (!monthInput || !monthInput.value) return;
             
@@ -1075,7 +1148,6 @@
             
             const isPassed = isDeadlinePassed(monthValue);
             
-            // Regenerate calendar with selected days
             let html = '';
             for (let day = 1; day <= daysInMonth; day++) {
                 const date = new Date(year, month - 1, day);
@@ -1088,20 +1160,17 @@
             
             daysGrid.innerHTML = html;
             
-            // Show preferences for selected days
             if (Object.keys(selectedDays).length > 0) {
                 updatePreferencesDisplay();
             }
         }
 
-        // Clear draft from localStorage
         function clearDraft(month) {
             if (!currentUser) return;
             const draftKey = `draft_${currentUser.username}_${month}`;
             localStorage.removeItem(draftKey);
         }
 
-        // Show draft saved indicator
         function showDraftSavedIndicator() {
             const indicator = document.getElementById('draftIndicator');
             if (indicator) {
@@ -1117,7 +1186,6 @@
             }
         }
 
-        // Italian holidays (main ones)
         const italianHolidays = {
             '01-01': 'Capodanno',
             '01-06': 'Epifania',
@@ -1131,10 +1199,7 @@
             '12-26': 'Santo Stefano'
         };
 
-        // Calculate deadline for a given month
-        // Deadline is 18th of PREVIOUS month
         function calculateDeadline(year, month) {
-            // Get previous month
             let prevMonth = month - 1;
             let prevYear = year;
             
@@ -1143,19 +1208,15 @@
                 prevYear = year - 1;
             }
             
-            // Deadline is 18th of previous month
             let deadline = new Date(prevYear, prevMonth - 1, 18);
             
-            // If 18th is Sunday (0) or Saturday (6), move to next Monday
             while (deadline.getDay() === 0 || deadline.getDay() === 6) {
                 deadline.setDate(deadline.getDate() + 1);
             }
             
-            // Check if it's a holiday
             const dateStr = `${String(deadline.getMonth() + 1).padStart(2, '0')}-${String(deadline.getDate()).padStart(2, '0')}`;
             if (italianHolidays[dateStr]) {
                 deadline.setDate(deadline.getDate() + 1);
-                // Check again if the next day is weekend
                 while (deadline.getDay() === 0 || deadline.getDay() === 6) {
                     deadline.setDate(deadline.getDate() + 1);
                 }
@@ -1164,7 +1225,6 @@
             return deadline;
         }
 
-        // Check if deadline has passed for a given month
         function isDeadlinePassed(monthStr) {
             const [year, month] = monthStr.split('-');
             const deadline = calculateDeadline(parseInt(year), parseInt(month));
@@ -1172,7 +1232,6 @@
             return now > deadline;
         }
 
-        // Get days until deadline
         function getDaysUntilDeadline(monthStr) {
             const [year, month] = monthStr.split('-');
             const deadline = calculateDeadline(parseInt(year), parseInt(month));
@@ -1181,7 +1240,6 @@
             return Math.ceil(diff / (1000 * 60 * 60 * 24));
         }
 
-        // Display deadline banner
         function displayDeadlineBanner(containerId) {
             const container = document.getElementById(containerId);
             if (!container) return;
@@ -1207,19 +1265,15 @@
 
             let bannerClass = 'deadline-banner';
             let message = '';
-            let icon = '📅';
 
             if (isPassed) {
                 bannerClass += ' expired';
                 message = `⛔ SCADENZA SUPERATA! Non è più possibile inserire o modificare desiderata per ${formatMonth(monthValue)}. La deadline era il ${deadlineStr}`;
-                icon = '⛔';
             } else if (daysUntil <= 3) {
                 bannerClass += ' close';
                 message = `🚨 URGENTE! Mancano solo ${daysUntil} giorni alla scadenza: ${deadlineStr}`;
-                icon = '🚨';
             } else if (daysUntil <= 7) {
                 message = `⏰ Scadenza vicina: ${deadlineStr} (${daysUntil} giorni)`;
-                icon = '⏰';
             } else {
                 message = `📅 Scadenza invio desiderata: ${deadlineStr} (${daysUntil} giorni)`;
             }
@@ -1227,7 +1281,6 @@
             container.innerHTML = `<div class="${bannerClass}">${message}</div>`;
         }
 
-        // Show Firebase status
         function showFirebaseStatus() {
             const statusDiv = document.getElementById('firebaseStatus');
             const statusDot = statusDiv.querySelector('.status-dot');
@@ -1255,7 +1308,6 @@
             }
         }
 
-        // Initialize
         document.addEventListener('DOMContentLoaded', () => {
             showFirebaseStatus();
             
@@ -1267,7 +1319,6 @@
             }
         });
 
-        // Login function
         async function login() {
             const username = document.getElementById('username').value.trim();
             const password = document.getElementById('password').value;
@@ -1289,16 +1340,13 @@
                     document.getElementById('userScreen').classList.remove('hidden');
                     document.getElementById('userBadge').textContent = `👨‍⚕️ ${currentUser.name}`;
                     
-                    // Populate month selector
                     populateMonthSelector();
                     
-                    // Set default month to next month
                     const now = new Date();
                     const nextMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1);
                     const monthStr = `${nextMonth.getFullYear()}-${String(nextMonth.getMonth() + 1).padStart(2, '0')}`;
                     document.getElementById('requestMonth').value = monthStr;
                     
-                    // Initialize calendar with draft mode
                     updateDaysList();
                     
                     await loadUserRequests();
@@ -1309,7 +1357,6 @@
             }
         }
 
-        // Logout function
         function logout() {
             currentUser = null;
             selectedDays = {};
@@ -1320,11 +1367,9 @@
             document.getElementById('password').value = '';
         }
 
-        // Update days list
         function updateDaysList() {
             const monthInput = document.getElementById('requestMonth');
             if (!monthInput || !monthInput.value) {
-                // Hide both modes if no month selected
                 document.getElementById('draftMode').classList.add('hidden');
                 document.getElementById('savedMode').classList.add('hidden');
                 return;
@@ -1337,27 +1382,22 @@
             
             if (!daysGrid) return;
             
-            // CRITICAL: Clear everything when changing month
             selectedDays = {};
             document.getElementById('notes').value = '';
             
-            // Always show draft mode first (fresh start)
             document.getElementById('draftMode').classList.remove('hidden');
             document.getElementById('savedMode').classList.add('hidden');
             
-            // Check if there's a saved draft ONLY for THIS month
             const monthKey = `draft_${currentUser.username}_${monthValue}`;
             const savedDraft = localStorage.getItem(monthKey);
             
             if (savedDraft) {
                 try {
                     const draft = JSON.parse(savedDraft);
-                    // Only load if it's actually for this month AND has month field
                     if (draft.month && draft.month === monthValue) {
                         selectedDays = draft.days || {};
                         document.getElementById('notes').value = draft.notes || '';
                     } else {
-                        // Old draft without month field or wrong month - delete it
                         localStorage.removeItem(monthKey);
                     }
                 } catch (error) {
@@ -1368,7 +1408,6 @@
             
             const isPassed = isDeadlinePassed(monthValue);
             
-            // Generate calendar
             let html = '';
             for (let day = 1; day <= daysInMonth; day++) {
                 const date = new Date(year, month - 1, day);
@@ -1382,12 +1421,10 @@
             daysGrid.innerHTML = html;
             displayDeadlineBanner('deadlineBanner');
             
-            // Reload user requests to show only this month's sent requests
             if (firebaseInitialized) {
                 loadUserRequests();
             }
             
-            // Update submit button state in draft mode
             const submitBtnDraft = document.getElementById('submitBtnDraft');
             if (submitBtnDraft) {
                 submitBtnDraft.disabled = isPassed;
@@ -1398,11 +1435,9 @@
                 }
             }
             
-            // If there are selected days from draft, update preferences display
             if (Object.keys(selectedDays).length > 0) {
                 updatePreferencesDisplay();
             } else {
-                // Clear preferences display if no days selected
                 const prefsContainer = document.getElementById('selectedDaysPreferences');
                 if (prefsContainer) {
                     prefsContainer.innerHTML = '';
@@ -1410,7 +1445,6 @@
             }
         }
 
-        // Toggle day selection
         function toggleDay(day) {
             const monthInput = document.getElementById('requestMonth');
             if (!monthInput || !monthInput.value) {
@@ -1437,7 +1471,6 @@
             updatePreferencesDisplay();
         }
 
-        // Update preferences display
         function updatePreferencesDisplay() {
             const container = document.getElementById('selectedDaysPreferences');
             const monthInput = document.getElementById('requestMonth');
@@ -1538,7 +1571,6 @@
             }).join('');
         }
 
-        // Update availability based on checkboxes
         function updateAvailability(day) {
             const morning = document.getElementById(`morning_${day}`);
             const morningRep = document.getElementById(`morning_rep_${day}`);
@@ -1548,33 +1580,28 @@
             const free = document.getElementById(`free_${day}`);
             const freeOptions = document.getElementById(`free_options_${day}`);
             
-            // Toggle morning rep dropdown
             if (morning && morningRep) {
                 morningRep.disabled = !morning.checked;
             }
             
-            // Toggle afternoon rep dropdown
             if (afternoon && afternoonRep) {
                 afternoonRep.disabled = !afternoon.checked;
             }
             
-            // Toggle free options
             if (free && freeOptions) {
                 freeOptions.style.display = free.checked ? 'block' : 'none';
                 
-                // Disable other checkboxes if free is checked
                 if (morning) morning.disabled = free.checked;
                 if (afternoon) afternoon.disabled = free.checked;
                 if (night) night.disabled = free.checked;
             }
             
-            // Build preference string
             let preference = '';
             
             if (free && free.checked) {
                 const freeReason = document.querySelector(`input[name="free_reason_${day}"]:checked`);
                 if (freeReason) {
-                    preference = freeReason.value; // RS, AA, U1, or Z
+                    preference = freeReason.value;
                 }
             } else {
                 const availability = [];
@@ -1602,7 +1629,6 @@
                 preference = availability.join(', ');
             }
             
-            // Update selectedDays
             if (typeof selectedDays[day] === 'object') {
                 selectedDays[day].preference = preference;
             } else {
@@ -1610,7 +1636,6 @@
             }
         }
 
-        // Update day note
         function updateDayNote(day, note) {
             if (typeof selectedDays[day] === 'object') {
                 selectedDays[day].note = note;
@@ -1619,7 +1644,6 @@
             }
         }
 
-        // Remove day
         function removeDay(day) {
             delete selectedDays[day];
             const buttons = document.querySelectorAll('.day-button');
@@ -1629,7 +1653,6 @@
             updatePreferencesDisplay();
         }
 
-        // Clear current draft
         function clearCurrentDraft() {
             const monthInput = document.getElementById('requestMonth');
             if (!monthInput || !monthInput.value) {
@@ -1650,7 +1673,6 @@
             selectedDays = {};
             document.getElementById('notes').value = '';
             
-            // Go back to draft mode
             document.getElementById('savedMode').classList.add('hidden');
             document.getElementById('draftMode').classList.remove('hidden');
             
@@ -1659,7 +1681,6 @@
             showUserAlert('Bozza cancellata', 'success');
         }
 
-        // Submit request - MODIFIED TO PREVENT DUPLICATES
         async function submitRequest() {
             if (!firebaseInitialized) {
                 showUserAlert('Database non disponibile. Configura Firebase per continuare.', 'error');
@@ -1685,11 +1706,9 @@
             }
 
             try {
-                // For each selected day, create or update a unique document
                 const [year, monthNum] = month.split('-');
                 
                 for (const [day, dayData] of Object.entries(selectedDays)) {
-                    // Create unique key: username_yyyy-mm-dd
                     const dayKey = `${currentUser.username}_${year}-${monthNum}-${String(day).padStart(2, '0')}`;
                     
                     const desiderata = {
@@ -1703,19 +1722,16 @@
                         timestamp: firebase.firestore.FieldValue.serverTimestamp()
                     };
                     
-                    // Use set with merge to update if exists, create if not
                     await db.collection('requests').doc(dayKey).set(desiderata, { merge: true });
                 }
                 
                 showUserAlert('Desiderata inviata con successo!', 'success');
                 
-                // Clear draft after successful submission
                 clearDraft(month);
                 
                 selectedDays = {};
                 document.getElementById('notes').value = '';
                 
-                // Hide draft mode and reload sent requests
                 document.getElementById('draftMode').classList.add('hidden');
                 document.getElementById('savedMode').classList.add('hidden');
                 
@@ -1726,7 +1742,6 @@
             }
         }
 
-        // Show user alert
         function showUserAlert(message, type) {
             const alertDiv = document.getElementById('userAlert');
             if (!alertDiv) return;
@@ -1740,14 +1755,12 @@
             }, 5000);
         }
 
-        // Load user requests - UPDATED TO HANDLE NEW STRUCTURE
         async function loadUserRequests() {
             if (!firebaseInitialized) return;
 
             const container = document.getElementById('userRequests');
             if (!container) return;
             
-            // Get currently selected month
             const monthInput = document.getElementById('requestMonth');
             const selectedMonth = monthInput?.value;
             
@@ -1757,7 +1770,6 @@
                 let query = db.collection('requests')
                     .where('username', '==', currentUser.username);
                 
-                // Filter by selected month if one is selected
                 if (selectedMonth) {
                     query = query.where('month', '==', selectedMonth);
                 }
@@ -1776,7 +1788,6 @@
                     return;
                 }
 
-                // Group by month
                 const byMonth = {};
                 snapshot.forEach(doc => {
                     const data = doc.data();
@@ -1798,14 +1809,12 @@
                         timestamp: timestamp
                     });
                     
-                    // Keep the most recent timestamp
                     if (timestamp > byMonth[data.month].latestTimestamp) {
                         byMonth[data.month].latestTimestamp = timestamp;
                         byMonth[data.month].generalNotes = data.generalNotes || '';
                     }
                 });
                 
-                // Sort months descending
                 const sortedMonths = Object.keys(byMonth).sort().reverse();
                 
                 container.innerHTML = sortedMonths.map(month => {
@@ -1873,7 +1882,6 @@
             }
         }
 
-        // Edit entire month
         async function editMonth(month) {
             if (!firebaseInitialized) return;
             
@@ -1883,7 +1891,6 @@
             }
 
             try {
-                // Load all days for this month
                 const snapshot = await db.collection('requests')
                     .where('username', '==', currentUser.username)
                     .where('month', '==', month)
@@ -1891,7 +1898,6 @@
 
                 if (snapshot.empty) return;
 
-                // Populate selectedDays
                 selectedDays = {};
                 let generalNotes = '';
                 
@@ -1904,13 +1910,9 @@
                     generalNotes = data.generalNotes || '';
                 });
 
-                // Set month selector
                 document.getElementById('requestMonth').value = month;
-                
-                // Set general notes
                 document.getElementById('notes').value = generalNotes;
                 
-                // Show draft mode and generate calendar manually without clearing selectedDays
                 document.getElementById('draftMode').classList.remove('hidden');
                 document.getElementById('savedMode').classList.add('hidden');
                 
@@ -1930,13 +1932,9 @@
                     daysGrid.innerHTML = html;
                 }
                 
-                // Update preferences display
                 updatePreferencesDisplay();
-                
-                // Update deadline banner
                 displayDeadlineBanner('deadlineBanner');
                 
-                // Scroll to top
                 window.scrollTo({ top: 0, behavior: 'smooth' });
                 
                 showUserAlert('Desiderata caricata per modifica. Modifica i giorni e clicca "Invia Desiderata" per salvare.', 'success');
@@ -1947,7 +1945,6 @@
             }
         }
 
-        // Delete entire month
         async function deleteMonth(month) {
             if (!firebaseInitialized) return;
             
@@ -1957,9 +1954,7 @@
             }
 
             const confirmed = confirm(
-                `⚠️ ATTENZIONE!\n\n` +
-                `Stai per cancellare TUTTE le desiderata per ${formatMonth(month)}.\n\n` +
-                `Sei sicuro di voler continuare?`
+                `⚠️ ATTENZIONE!\n\nStai per cancellare TUTTE le desiderata per ${formatMonth(month)}.\n\nSei sicuro?`
             );
             
             if (!confirmed) return;
@@ -1986,36 +1981,29 @@
             }
         }
 
-        // Delete single day
         async function deleteSingleDay(docId) {
             if (!firebaseInitialized) return;
 
-            const confirmed = confirm(
-                `⚠️ Vuoi cancellare questa singola desiderata?`
-            );
+            const confirmed = confirm(`⚠️ Vuoi cancellare questa singola desiderata?`);
             
             if (!confirmed) return;
 
             try {
                 await db.collection('requests').doc(docId).delete();
-                
                 showUserAlert('Desiderata cancellata con successo', 'success');
                 await loadUserRequests();
-                
             } catch (error) {
                 console.error('Errore:', error);
                 showUserAlert('Errore durante la cancellazione. Riprova.', 'error');
             }
         }
 
-        // Load admin data - UPDATED TO HANDLE NEW STRUCTURE
         async function loadAdminData() {
             if (!firebaseInitialized) return;
 
             try {
                 const snapshot = await db.collection('requests').get();
                 
-                // Group by month then by user
                 const byMonth = {};
                 snapshot.forEach(doc => {
                     const data = doc.data();
@@ -2038,17 +2026,26 @@
                     });
                 });
 
-                // Calculate stats
-                const totalRequests = snapshot.size;
                 const uniqueUsers = new Set();
-                snapshot.forEach(doc => uniqueUsers.add(doc.data().username));
+                const uniqueUsersByMonth = {};
+                snapshot.forEach(doc => {
+                    const d = doc.data();
+                    uniqueUsers.add(d.username);
+                    if (!uniqueUsersByMonth[d.month]) uniqueUsersByMonth[d.month] = new Set();
+                    uniqueUsersByMonth[d.month].add(d.username);
+                });
                 
-                document.getElementById('totalRequests').textContent = totalRequests;
+                // Totale: utenti distinti che hanno inviato almeno una desiderata
+                document.getElementById('totalRequests').textContent = uniqueUsers.size;
                 document.getElementById('activeUsers').textContent = uniqueUsers.size;
 
+                // Mese corrente: utenti che hanno inviato per il prossimo mese
                 const now = new Date();
-                const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
-                const currentMonthReqs = byMonth[currentMonth] ? Object.values(byMonth[currentMonth]).reduce((sum, user) => sum + user.days.length, 0) : 0;
+                let nextMonYear = now.getFullYear();
+                let nextMonNum = now.getMonth() + 2;
+                if (nextMonNum > 12) { nextMonNum = 1; nextMonYear++; }
+                const nextMonKey = `${nextMonYear}-${String(nextMonNum).padStart(2, '0')}`;
+                const currentMonthReqs = uniqueUsersByMonth[nextMonKey] ? uniqueUsersByMonth[nextMonKey].size : 0;
                 document.getElementById('currentMonthRequests').textContent = currentMonthReqs;
 
                 const months = Object.keys(byMonth).sort().reverse();
@@ -2056,30 +2053,22 @@
                 filterSelect.innerHTML = '<option value="">Tutti i mesi</option>' + 
                     months.map(m => `<option value="${m}">${formatMonth(m)}</option>`).join('');
 
+                // Salvo in memoria per il filtro
+                _allAdminData = byMonth;
+
                 displayAllRequestsGrouped(byMonth, months);
                 
-                // Display admin deadline info
-                const adminBanner = document.getElementById('adminDeadlineBanner');
-                if (adminBanner && months.length > 0) {
-                    const nextMonth = months[0];
-                    const [year, month] = nextMonth.split('-');
-                    const deadline = calculateDeadline(parseInt(year), parseInt(month));
-                    const deadlineStr = deadline.toLocaleDateString('it-IT', { 
-                        weekday: 'long', 
-                        day: 'numeric', 
-                        month: 'long', 
-                        year: 'numeric' 
-                    });
-                    adminBanner.innerHTML = `<div class="alert alert-info">
-                        📅 Prossima scadenza invio desiderata: <strong>${deadlineStr}</strong> (${formatMonth(nextMonth)})
-                    </div>`;
-                }
+                // Aggiorna deadline (nessun mese selezionato = mese prossimo)
+                updateAdminDeadlineBanner('');
+
+                // Auto-detect conflicts
+                detectConflicts(byMonth, '');
+                
             } catch (error) {
                 console.error('Error loading admin data:', error);
             }
         }
 
-        // Display all requests grouped - NEW FUNCTION
         function displayAllRequestsGrouped(byMonth, months) {
             const container = document.getElementById('allRequests');
             if (!container) return;
@@ -2096,47 +2085,36 @@
                 return;
             }
 
-            // Calculate conflicts for all months
             const conflictsMap = {};
             months.forEach(month => {
                 const users = byMonth[month];
                 const dayMap = {};
                 
-                // Build day map
                 Object.keys(users).forEach(username => {
                     users[username].days.forEach(d => {
                         if (!dayMap[d.day]) dayMap[d.day] = [];
-                        dayMap[d.day].push({
-                            username: username,
-                            preference: d.preference
-                        });
+                        dayMap[d.day].push({ username: username, preference: d.preference });
                     });
                 });
                 
-                // Find conflicts
                 conflictsMap[month] = {};
                 Object.keys(dayMap).forEach(day => {
                     const usersOnDay = dayMap[day];
                     if (usersOnDay.length > 1) {
-                        // Group by preference
                         const prefMap = {};
                         usersOnDay.forEach(u => {
                             if (!prefMap[u.preference]) prefMap[u.preference] = [];
                             prefMap[u.preference].push(u);
                         });
                         
-                        // Check for same preference
-                        let conflictType = 'warning'; // different preferences
+                        let conflictType = 'warning';
                         Object.keys(prefMap).forEach(pref => {
                             if (prefMap[pref].length > 1) {
-                                conflictType = 'danger'; // same preference!
+                                conflictType = 'danger';
                             }
                         });
                         
-                        conflictsMap[month][day] = {
-                            type: conflictType,
-                            count: usersOnDay.length
-                        };
+                        conflictsMap[month][day] = { type: conflictType, count: usersOnDay.length };
                     }
                 });
             });
@@ -2151,7 +2129,6 @@
                     const firstDay = sortedDays[0];
                     
                     const daysList = sortedDays.map(d => {
-                        // Check if this day has conflicts
                         const conflict = conflictsMap[month][d.day];
                         let conflictBadge = '';
                         
@@ -2195,72 +2172,44 @@
             }).join('');
         }
 
-        // Filter requests - UPDATED
-        async function filterRequests() {
-            if (!firebaseInitialized) return;
+        // Dati admin in memoria per filtro veloce
+        let _allAdminData = {};
 
+        function filterRequests() {
             const selectedMonth = document.getElementById('filterMonth').value;
-            
-            try {
-                const snapshot = await db.collection('requests').get();
-                
-                const byMonth = {};
-                snapshot.forEach(doc => {
-                    const data = doc.data();
-                    if (selectedMonth && data.month !== selectedMonth) return;
-                    
-                    if (!byMonth[data.month]) {
-                        byMonth[data.month] = {};
-                    }
-                    if (!byMonth[data.month][data.username]) {
-                        byMonth[data.month][data.username] = {
-                            name: data.name,
-                            days: []
-                        };
-                    }
-                    byMonth[data.month][data.username].days.push({
-                        id: doc.id,
-                        day: data.day,
-                        preference: data.preference,
-                        note: data.note,
-                        generalNotes: data.generalNotes,
-                        timestamp: data.timestamp ? data.timestamp.toDate() : new Date()
-                    });
-                });
 
-                const months = Object.keys(byMonth).sort().reverse();
-                displayAllRequestsGrouped(byMonth, months);
-                
-                // Detect conflicts
-                detectConflicts(byMonth, selectedMonth);
-            } catch (error) {
-                console.error('Error filtering requests:', error);
+            // Filtra i dati già in memoria senza ricaricare da Firebase
+            let byMonth = {};
+            if (selectedMonth) {
+                if (_allAdminData[selectedMonth]) {
+                    byMonth[selectedMonth] = _allAdminData[selectedMonth];
+                }
+            } else {
+                byMonth = _allAdminData;
             }
+
+            const months = Object.keys(byMonth).sort().reverse();
+            displayAllRequestsGrouped(byMonth, months);
+            detectConflicts(byMonth, selectedMonth);
+            updateAdminDeadlineBanner(selectedMonth);
         }
 
-        // Detect conflicts between users on same day
         async function detectConflicts(byMonth, selectedMonth) {
             const conflictsContainer = document.getElementById('conflictsContainer');
             if (!conflictsContainer) return;
 
             const conflicts = [];
 
-            // For each month
             Object.keys(byMonth).forEach(month => {
-                // Skip if filtering by month and this isn't it
                 if (selectedMonth && month !== selectedMonth) return;
 
                 const users = byMonth[month];
-                
-                // Create a map of day -> users with their preferences
                 const dayMap = {};
                 
                 Object.keys(users).forEach(username => {
                     users[username].days.forEach(dayData => {
                         const day = dayData.day;
-                        if (!dayMap[day]) {
-                            dayMap[day] = [];
-                        }
+                        if (!dayMap[day]) dayMap[day] = [];
                         dayMap[day].push({
                             username: username,
                             name: users[username].name,
@@ -2270,31 +2219,24 @@
                     });
                 });
 
-                // Check for conflicts in each day
                 Object.keys(dayMap).forEach(day => {
                     const usersOnDay = dayMap[day];
                     
                     if (usersOnDay.length > 1) {
-                        // Multiple users want same day
                         const [year, monthNum] = month.split('-');
                         const date = new Date(year, monthNum - 1, day);
                         const dayName = date.toLocaleDateString('it-IT', { weekday: 'long' });
                         
-                        // Group by preference to find conflicts
                         const preferenceMap = {};
                         usersOnDay.forEach(user => {
                             const pref = user.preference;
-                            if (!preferenceMap[pref]) {
-                                preferenceMap[pref] = [];
-                            }
+                            if (!preferenceMap[pref]) preferenceMap[pref] = [];
                             preferenceMap[pref].push(user);
                         });
                         
-                        // Check each preference group
                         let hasSamePreferenceConflict = false;
                         Object.keys(preferenceMap).forEach(pref => {
                             if (preferenceMap[pref].length > 1) {
-                                // SUPER ALERT - 2+ users with same preference
                                 hasSamePreferenceConflict = true;
                                 conflicts.push({
                                     type: 'danger',
@@ -2309,7 +2251,6 @@
                             }
                         });
                         
-                        // If no same-preference conflict, just show warning for multiple users
                         if (!hasSamePreferenceConflict) {
                             conflicts.push({
                                 type: 'warning',
@@ -2325,17 +2266,11 @@
                 });
             });
 
-            // Display conflicts
             if (conflicts.length === 0) {
-                conflictsContainer.innerHTML = `
-                    <div class="no-conflicts">
-                        ✅ Nessun conflitto rilevato! Tutti i giorni sono OK.
-                    </div>
-                `;
+                conflictsContainer.innerHTML = `<div class="no-conflicts">✅ Nessun conflitto rilevato! Tutti i giorni sono OK.</div>`;
                 return;
             }
 
-            // Sort by severity (danger first), then by month, then by day
             conflicts.sort((a, b) => {
                 if (a.type === 'danger' && b.type === 'warning') return -1;
                 if (a.type === 'warning' && b.type === 'danger') return 1;
@@ -2367,7 +2302,6 @@
             }).join('');
         }
 
-        // Delete my data
         async function deleteMyData() {
             if (!firebaseInitialized) {
                 alert('Database non disponibile');
@@ -2375,18 +2309,13 @@
             }
 
             const confirmed = confirm(
-                '⚠️ ATTENZIONE!\n\n' +
-                'Questa azione cancellerà TUTTE le tue richieste precedenti in modo permanente.\n\n' +
-                'Sei sicuro di voler continuare?'
+                '⚠️ ATTENZIONE!\n\nQuesta azione cancellerà TUTTE le tue richieste precedenti in modo permanente.\n\nSei sicuro di voler continuare?'
             );
             
             if (!confirmed) return;
 
             const doubleCheck = confirm(
-                'CONFERMA FINALE\n\n' +
-                'Stai per cancellare definitivamente tutte le tue desiderata.\n' +
-                'Questa azione NON può essere annullata.\n\n' +
-                'Confermi la cancellazione?'
+                'CONFERMA FINALE\n\nStai per cancellare definitivamente tutte le tue desiderata.\nQuesta azione NON può essere annullata.\n\nConfermi la cancellazione?'
             );
 
             if (!doubleCheck) return;
@@ -2411,135 +2340,43 @@
             }
         }
 
-        // Show export instructions modal
+        function copyCmd(btn, text) {
+            navigator.clipboard.writeText(text).then(() => {
+                const orig = btn.textContent;
+                btn.textContent = '✅ Copiato!';
+                btn.style.background = '#2f855a';
+                setTimeout(() => {
+                    btn.textContent = orig;
+                    btn.style.background = '#4a5568';
+                }, 2000);
+            }).catch(() => {
+                // Fallback per browser che non supportano clipboard API
+                const el = document.createElement('textarea');
+                el.value = text;
+                document.body.appendChild(el);
+                el.select();
+                document.execCommand('copy');
+                document.body.removeChild(el);
+                const orig = btn.textContent;
+                btn.textContent = '✅ Copiato!';
+                btn.style.background = '#2f855a';
+                setTimeout(() => {
+                    btn.textContent = orig;
+                    btn.style.background = '#4a5568';
+                }, 2000);
+            });
+        }
+
         function showExportInstructions() {
             const modal = document.getElementById('exportModal');
-            if (modal) {
-                modal.style.display = 'flex';
-            }
+            if (modal) modal.style.display = 'flex';
         }
 
-        // Close export instructions modal
         function closeExportModal() {
             const modal = document.getElementById('exportModal');
-            if (modal) {
-                modal.style.display = 'none';
-            }
+            if (modal) modal.style.display = 'none';
         }
 
-        // Export to Excel (admin only)
-        async function exportToExcel() {
-            if (!firebaseInitialized) {
-                alert('Database non disponibile');
-                return;
-            }
-
-            try {
-                // Get all requests from Firebase
-                const snapshot = await db.collection('requests').get();
-                
-                if (snapshot.empty) {
-                    alert('Nessuna desiderata da esportare');
-                    return;
-                }
-
-                // Group by month and user
-                const byMonth = {};
-                snapshot.forEach(doc => {
-                    const data = doc.data();
-                    if (!byMonth[data.month]) {
-                        byMonth[data.month] = {};
-                    }
-                    if (!byMonth[data.month][data.username]) {
-                        byMonth[data.month][data.username] = {
-                            name: data.name,
-                            days: []
-                        };
-                    }
-                    byMonth[data.month][data.username].days.push({
-                        day: data.day,
-                        preference: data.preference,
-                        note: data.note || '',
-                        generalNotes: data.generalNotes || ''
-                    });
-                });
-
-                // Create workbook
-                const wb = XLSX.utils.book_new();
-
-                // For each month, create a sheet
-                const months = Object.keys(byMonth).sort();
-                
-                months.forEach(month => {
-                    const users = byMonth[month];
-                    const [year, monthNum] = month.split('-');
-                    const monthName = new Date(year, monthNum - 1, 1).toLocaleDateString('it-IT', { month: 'long', year: 'numeric' });
-                    
-                    // Create data array for this month
-                    const data = [];
-                    
-                    // Header
-                    data.push(['DESIDERATA - ' + monthName.toUpperCase()]);
-                    data.push([]);
-                    data.push(['Medico', 'Giorno', 'Preferenza', 'Note Giorno', 'Note Generali']);
-                    
-                    // Sort users by name
-                    const usersList = Object.keys(users).sort((a, b) => 
-                        users[a].name.localeCompare(users[b].name)
-                    );
-                    
-                    usersList.forEach(username => {
-                        const userData = users[username];
-                        const sortedDays = userData.days.sort((a, b) => a.day - b.day);
-                        
-                        sortedDays.forEach((day, index) => {
-                            data.push([
-                                index === 0 ? userData.name : '', // Nome solo sulla prima riga
-                                day.day,
-                                day.preference,
-                                day.note,
-                                index === 0 ? day.generalNotes : '' // Note generali solo sulla prima riga
-                            ]);
-                        });
-                        
-                        // Empty row between users
-                        data.push([]);
-                    });
-                    
-                    // Create worksheet
-                    const ws = XLSX.utils.aoa_to_sheet(data);
-                    
-                    // Set column widths
-                    ws['!cols'] = [
-                        { wch: 20 }, // Medico
-                        { wch: 10 }, // Giorno
-                        { wch: 15 }, // Preferenza
-                        { wch: 30 }, // Note Giorno
-                        { wch: 40 }  // Note Generali
-                    ];
-                    
-                    // Add worksheet to workbook
-                    const sheetName = monthName.substring(0, 31); // Excel limits to 31 chars
-                    XLSX.utils.book_append_sheet(wb, ws, sheetName);
-                });
-                
-                // Generate filename with current date
-                const now = new Date();
-                const dateStr = now.toISOString().split('T')[0]; // YYYY-MM-DD
-                const filename = `Desiderata_Reparto_${dateStr}.xlsx`;
-                
-                // Save file
-                XLSX.writeFile(wb, filename);
-                
-                alert(`✅ Export completato!\n\nFile salvato: ${filename}\n\nFogli creati: ${months.length}`);
-                
-            } catch (error) {
-                console.error('Errore export:', error);
-                alert('❌ Errore durante l\'export. Controlla la console per dettagli.');
-            }
-        }
-
-        // Delete all data (admin only)
         async function deleteAllData() {
             if (!firebaseInitialized) {
                 alert('Database non disponibile');
@@ -2552,17 +2389,12 @@
             }
 
             const confirmed = confirm(
-                '🚨 ATTENZIONE AMMINISTRATORE! 🚨\n\n' +
-                'Questa azione cancellerà TUTTE le richieste di TUTTI i medici in modo permanente.\n\n' +
-                'Sei ASSOLUTAMENTE sicuro di voler continuare?'
+                '🚨 ATTENZIONE AMMINISTRATORE! 🚨\n\nQuesta azione cancellerà TUTTE le richieste di TUTTI i medici in modo permanente.\n\nSei ASSOLUTAMENTE sicuro?'
             );
             
             if (!confirmed) return;
 
-            const password = prompt(
-                'CONFERMA FINALE\n\n' +
-                'Per procedere, inserisci la tua password admin:'
-            );
+            const password = prompt('CONFERMA FINALE\n\nPer procedere, inserisci la tua password admin:');
 
             if (password !== users['admin'].password) {
                 alert('❌ Password errata. Operazione annullata.');
@@ -2585,7 +2417,6 @@
             }
         }
 
-        // Utility functions
         function formatMonth(monthStr) {
             const [year, month] = monthStr.split('-');
             const months = ['Gennaio', 'Febbraio', 'Marzo', 'Aprile', 'Maggio', 'Giugno', 
