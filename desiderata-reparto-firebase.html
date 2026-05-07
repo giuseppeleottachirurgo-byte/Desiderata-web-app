@@ -205,6 +205,35 @@
             50% { opacity: 0.8; }
         }
 
+        /* Card medico collassabile */
+        .doctor-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            padding: 5px 0;
+            user-select: none;
+        }
+        .doctor-card-header:hover .doctor-toggle-arrow {
+            color: #667eea;
+        }
+        .doctor-toggle-arrow {
+            font-size: 18px;
+            color: #a0aec0;
+            transition: transform 0.2s;
+            margin-left: 10px;
+        }
+        .doctor-card-body {
+            overflow: hidden;
+            transition: max-height 0.25s ease, opacity 0.2s ease;
+            max-height: 2000px;
+            opacity: 1;
+        }
+        .doctor-card-body.collapsed {
+            max-height: 0;
+            opacity: 0;
+        }
+
         /* Admin deadline toggle */
         .deadline-toggle-btn {
             display: inline-flex;
@@ -821,11 +850,18 @@
                 <div style="margin-top: 30px; padding: 20px; background: #fff3cd; border: 2px solid #ffc107; border-radius: 8px;">
                     <h3 style="color: #856404; margin-bottom: 10px;">⚠️ Zona Amministratore</h3>
                     <p style="color: #856404; margin-bottom: 15px; font-size: 14px;">
-                        Attenzione: queste azioni sono irreversibili!
+                        Attenzione: questa azione è irreversibile e cancella i dati di tutti i medici!
                     </p>
-                    <button onclick="deleteAllData()" class="btn-danger">
-                        🗑️ Cancella TUTTE le richieste (di tutti i medici)
-                    </button>
+                    <details>
+                        <summary style="color: #c53030; font-size: 13px; cursor: pointer; font-weight: 600;">
+                            Mostra opzione cancellazione totale...
+                        </summary>
+                        <div style="margin-top: 15px;">
+                            <button onclick="deleteAllData()" class="btn-danger">
+                                🗑️ Cancella TUTTE le richieste (di tutti i medici)
+                            </button>
+                        </div>
+                    </details>
                 </div>
             </div>
         </div>
@@ -888,6 +924,14 @@
 
         let currentUser = null;
         let selectedDays = {};
+
+        // Toggle card medico collassabile
+        function toggleDoctorCard(cardId, header) {
+            const body = document.getElementById(cardId);
+            const arrow = header.querySelector('.doctor-toggle-arrow');
+            body.classList.toggle('collapsed');
+            arrow.textContent = body.classList.contains('collapsed') ? '▼' : '▲';
+        }
 
         // Aggiorna il banner deadline in base al mese selezionato
         function updateAdminDeadlineBanner(selectedMonth) {
@@ -2152,19 +2196,30 @@
                         </div>`;
                     }).join('');
                     
+                    const cardId = `card_${username}_${month}`;
                     return `
                         <div class="request-card">
-                            <div class="request-header">
-                                <span class="request-name">${userData.name}</span>
-                                <span class="request-month">${formatMonth(month)}</span>
+                            <div class="doctor-card-header" onclick="toggleDoctorCard('${cardId}', this)">
+                                <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+                                    <span class="request-name">${userData.name}</span>
+                                    <span class="request-month">${formatMonth(month)}</span>
+                                    <small style="color: #a0aec0;">${sortedDays.length} giorn${sortedDays.length === 1 ? 'o' : 'i'}</small>
+                                </div>
+                                <span class="doctor-toggle-arrow">▲</span>
                             </div>
-                            <div style="background: white; padding: 10px; border-radius: 6px; margin-bottom: 10px;">
-                                <strong style="color: #4a5568; display: block; margin-bottom: 8px;">Preferenze per giorno:</strong>
-                                ${daysList}
-                            </div>
-                            ${firstDay.generalNotes ? `<div class="request-detail"><strong>Note generali:</strong> ${firstDay.generalNotes}</div>` : ''}
-                            <div style="margin-top: 10px; padding-top: 10px; border-top: 1px solid #e2e8f0;">
-                                <small style="color: #a0aec0;">Inviata il ${formatDate(firstDay.timestamp)}</small>
+                            <div class="doctor-card-body" id="${cardId}">
+                                <div style="background: white; padding: 10px; border-radius: 6px; margin-top: 12px; margin-bottom: 10px;">
+                                    <strong style="color: #4a5568; display: block; margin-bottom: 8px;">Preferenze per giorno:</strong>
+                                    ${daysList}
+                                </div>
+                                ${firstDay.generalNotes ? `<div class="request-detail"><strong>Note generali:</strong> ${firstDay.generalNotes}</div>` : ''}
+                                <div style="margin-top: 10px; padding-top: 10px; border-top: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center;">
+                                    <small style="color: #a0aec0;">Inviata il ${formatDate(firstDay.timestamp)}</small>
+                                    <button onclick="deleteAdminUserMonth('${username}', '${userData.name}', '${month}')"
+                                            style="background: none; border: 1px solid #fc8181; color: #e53e3e; padding: 4px 12px; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 600;">
+                                        🗑️ Cancella
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     `;
@@ -2375,6 +2430,41 @@
         function closeExportModal() {
             const modal = document.getElementById('exportModal');
             if (modal) modal.style.display = 'none';
+        }
+
+        // Cancella le desiderata di un singolo medico per un singolo mese
+        async function deleteAdminUserMonth(username, name, month) {
+            if (!firebaseInitialized) {
+                alert('Database non disponibile');
+                return;
+            }
+
+            const confirmed = confirm(
+                `⚠️ Vuoi cancellare le desiderata di ${name} per ${formatMonth(month)}?\n\nQuesta azione è irreversibile.`
+            );
+            if (!confirmed) return;
+
+            try {
+                const snapshot = await db.collection('requests')
+                    .where('username', '==', username)
+                    .where('month', '==', month)
+                    .get();
+
+                if (snapshot.empty) {
+                    alert('Nessuna desiderata trovata.');
+                    return;
+                }
+
+                const batch = db.batch();
+                snapshot.forEach(doc => batch.delete(doc.ref));
+                await batch.commit();
+
+                alert(`✅ Desiderata di ${name} per ${formatMonth(month)} cancellate.`);
+                await loadAdminData();
+            } catch (error) {
+                console.error('Errore:', error);
+                alert('❌ Errore durante la cancellazione. Riprova.');
+            }
         }
 
         async function deleteAllData() {
