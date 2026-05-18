@@ -1282,6 +1282,8 @@
         function isDeadlinePassed(monthStr) {
             const [year, month] = monthStr.split('-');
             const deadline = calculateDeadline(parseInt(year), parseInt(month));
+            // Scade alle 23:59:59 del giorno di deadline, non alla mezzanotte
+            deadline.setHours(23, 59, 59, 999);
             const now = new Date();
             return now > deadline;
         }
