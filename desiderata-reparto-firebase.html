@@ -808,12 +808,6 @@
                     </div>
                 </div>
 
-                <!-- CONFLICTS ALERT SECTION -->
-                <div id="conflictsSection" style="margin: 30px 0;">
-                    <h2>⚠️ Alert Sovrapposizioni</h2>
-                    <div id="conflictsContainer"></div>
-                </div>
-
                 <div class="month-filter">
                     <label for="filterMonth">Filtra per mese</label>
                     <select id="filterMonth" onchange="filterRequests()">
@@ -823,6 +817,12 @@
 
                 <h2>Tutte le Desiderata</h2>
                 <div id="allRequests"></div>
+
+                <!-- CONFLICTS ALERT SECTION -->
+                <div id="conflictsSection" style="margin: 30px 0;">
+                    <h2>⚠️ Alert Sovrapposizioni</h2>
+                    <div id="conflictsContainer"></div>
+                </div>
                 
                 <div style="margin-top: 20px; text-align: center;">
                     <button onclick="showExportInstructions()" class="btn-primary" style="background: #10b981; padding: 14px 28px; font-size: 16px;">
@@ -2117,13 +2117,27 @@
                 // Salvo in memoria per il filtro
                 _allAdminData = byMonth;
 
-                displayAllRequestsGrouped(byMonth, months);
+                // Nessuna card renderizzata all'apertura: attendo la scelta esplicita del mese
+                const allRequestsContainer = document.getElementById('allRequests');
+                if (allRequestsContainer) {
+                    allRequestsContainer.innerHTML = `
+                        <div class="empty-state">
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                            </svg>
+                            <p>Seleziona un mese dal filtro per vedere le desiderate</p>
+                        </div>
+                    `;
+                }
                 
                 // Aggiorna deadline (nessun mese selezionato = mese prossimo)
                 updateAdminDeadlineBanner('');
 
-                // Auto-detect conflicts
-                detectConflicts(byMonth, '');
+                // Nessun calcolo conflitti all'apertura: attendo la scelta esplicita del mese
+                const conflictsContainer = document.getElementById('conflictsContainer');
+                if (conflictsContainer) {
+                    conflictsContainer.innerHTML = `<div class="no-conflicts">Seleziona un mese dal filtro per vedere gli eventuali conflitti di turni.</div>`;
+                }
                 
             } catch (error) {
                 console.error('Error loading admin data:', error);
@@ -2222,9 +2236,9 @@
                                     <span class="request-month">${formatMonth(month)}</span>
                                     <small style="color: #a0aec0;">${sortedDays.length} giorn${sortedDays.length === 1 ? 'o' : 'i'}</small>
                                 </div>
-                                <span class="doctor-toggle-arrow">▲</span>
+                                <span class="doctor-toggle-arrow">▼</span>
                             </div>
-                            <div class="doctor-card-body" id="${cardId}">
+                            <div class="doctor-card-body collapsed" id="${cardId}">
                                 <div style="background: white; padding: 10px; border-radius: 6px; margin-top: 12px; margin-bottom: 10px;">
                                     <strong style="color: #4a5568; display: block; margin-bottom: 8px;">Preferenze per giorno:</strong>
                                     ${daysList}
